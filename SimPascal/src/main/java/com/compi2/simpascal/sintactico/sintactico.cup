@@ -1,0 +1,110 @@
+package com.compi2.simpascal.sintactico;
+
+import com.compi2.simpascal.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java_cup.runtime.*;
+
+// parser
+parser code {:
+    //public LinkedList<Errores> listaErrores = new LinkedList<>();
+
+    public void syntax_error(Symbol s){
+        System.out.println("SINTACTICO RECUPERABLE No se esperaba el componente " +s.value);
+    }
+
+    public void unrecovered_syntax_error (Symbol s){
+        System.out.println("SINTACTICO NO RECUPERABLE No se esperaba el componente " + s.value);
+    }
+:}
+
+action code
+{:
+:}
+
+//terminales
+terminal String                         CADENA, ENTERO, DECIMAL, ID, COMA, PUNTOCOMA, PUNTO, DOSPUNTOS;
+terminal char                           CARACTER;
+terminal                                ARRAY, BEGIN, BOOLEAN, CHAR, CONST, DOWNTO, ELSE, END,
+                                        FILE, FOR, FUNCTION, GOTO, IF, IN, INTEGER, LABEL,
+                                        NIL, OF, ON, PACKED, PROCEDURE, PROGRAM, READLN, REAL,
+                                        RECORD, REPEAT, SET, STRING, THEN, TO, TYPE, UNTIL, VAR, WHILE, WITH, WRITELN;
+terminal                                MAS, MENOS, MULTI, DIV, MOD, UMENOS, ASIGNACION;
+terminal                                IGUAL, IGUALA, DIFERENTEA, MAYOR, MENOR, MAYORIGUAL, MENORIGUAL;
+terminal                                L_LLAVE, R_LLAVE, L_PAREN, R_PAREN, L_CORCH, R_CORCH, FLECHA, BARRA;
+terminal                                OR, AND, NOT;
+
+//no terminales
+nonterminal                             INICIO, INSTRUCCIONES;
+nonterminal                             INSTRUCCION;
+
+nonterminal                             TIPOS;
+nonterminal                             EXPRESION, EARIT, ELOGIC, ERELAC, ENATIV, CASTEO;
+
+
+
+precedence left     OR;
+precedence left     AND;
+precedence right    NOT;
+precedence left     IGUALA, DIFERENTEA, MAYOR, MENOR, MAYORIGUAL, MENORIGUAL;
+precedence left     MAS, MENOS;
+precedence left     MULTI, DIV, MOD;
+precedence right    UMENOS;
+
+start with INICIO;
+
+INICIO ::= INSTRUCCIONES:a      {:   System.out.println("Instrucciones:");   :}
+;
+
+INSTRUCCIONES ::= INSTRUCCIONES:a INSTRUCCION:b                     {: System.out.println("Instrucciones + instruccion");  :}
+                | INSTRUCCION:a                                     {: System.out.println("Instruccion");  :}
+;
+
+INSTRUCCION ::= EXPRESION: a                                        {: System.out.println("Expresion");  :}
+              | error PUNTOCOMA
+;
+
+TIPOS ::= INTEGER       {:   :}
+        | REAL    {:   :}
+        | CHAR      {:   :}
+        | STRING    {:   :}
+        | BOOLEAN      {:   :}
+;
+
+EXPRESION ::= EARIT:a       {: System.out.println("Aritmetica");  :}
+            | ERELAC:a      {: System.out.println("Aritmetica");  :}
+            | ELOGIC:a      {: System.out.println("Aritmetica");  :}
+            | ENATIV:a      {: System.out.println("Aritmetica");  :}
+            | CASTEO:a      {: System.out.println("Aritmetica");  :}
+            | ID:a          {: System.out.println("Variable"); :}
+            | ID:a L_LLAVE EXPRESION:b R_LLAVE  {:  System.out.println("Variable array");   :}
+            | L_PAREN EXPRESION:a R_PAREN       {:  System.out.println("En parentesis");  :}
+;
+
+EARIT ::= MENOS EXPRESION:a                  {:  System.out.println("Negacion de " + a); :} %prec UMENOS
+        | EXPRESION:a MAS EXPRESION:b        {:  System.out.println("Suma de " + a + " y " + b); :}
+        | EXPRESION:a MENOS EXPRESION:b      {:  System.out.println("Resta de " + a + " y " + b); :}
+        | EXPRESION:a MULTI EXPRESION:b      {:  System.out.println("Multiplicacion de " + a + " y " + b); :}
+        | EXPRESION:a DIV EXPRESION:b        {:  System.out.println("Division de " + a + " entre " + b); :}
+;
+
+ERELAC ::= EXPRESION:a IGUALA EXPRESION:b     {: System.out.println(a + " es igual a " + b); :}
+         | EXPRESION:a DIFERENTEA EXPRESION:b {: System.out.println(a + " es diferente a " + b); :}
+         | EXPRESION:a MAYOR EXPRESION:b      {: System.out.println(a + " es mayor que " + b); :}
+         | EXPRESION:a MENOR EXPRESION:b      {: System.out.println(a + " es menor que " + b); :}
+         | EXPRESION:a MAYORIGUAL EXPRESION:b {: System.out.println(a + " es mayor o igual a " + b); :}
+         | EXPRESION:a MENORIGUAL EXPRESION:b {: System.out.println(a + " es menor o igual a " + b); :}
+;
+
+ELOGIC ::= NOT EXPRESION:a                    {: System.out.println("Not " + a); :}
+         | EXPRESION:a OR EXPRESION:b         {: System.out.println(a + " o " + b); :}
+         | EXPRESION:a AND EXPRESION:b        {: System.out.println(a + " y " + b); :}
+;
+
+ENATIV ::= ENTERO:a      {:   RESULT = Integer.parseInt(a);       :}
+         | DECIMAL:a     {:   RESULT = Double.parseDouble(a);    :}
+         | CADENA:a      {:   RESULT = a;                         :}
+         | CARACTER:a    {:   RESULT = a;                       :}
+;
+
+
