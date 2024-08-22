@@ -1,6 +1,7 @@
 package com.compi2.simpascal.lexico;
 
 import com.compi2.simpascal.sintactico.sym;
+import com.compi2.simpascal.instrucciones.Errores;
 import java.util.LinkedList;
 import java_cup.runtime.*;
 
@@ -8,13 +9,12 @@ import java_cup.runtime.*;
 
 
 %{
-    //public LinkedList<Errores> listaErrores = new LinkedList<>();
+    public LinkedList<Errores> listaErrores = new LinkedList<>();
 %}
 
 %init{
     yyline = 1;
     yycolumn = 1;
-    //listaErrores = new LinkedList<>();
 %init}
 
 %class Lexico
@@ -239,4 +239,4 @@ DOS_PUNTOS      =   ":"
 
 <YYINITIAL> {ID}            { return new Symbol(sym.ID, yyline, yycolumn,yytext());}
 
-<YYINITIAL> .               { System.out.println("error");}
+<YYINITIAL> .               { listaErrores.add(new Errores("LEXICO", "El caracter " + yytext() + " NO pertenece al lenguaje", yyline, yycolumn));}

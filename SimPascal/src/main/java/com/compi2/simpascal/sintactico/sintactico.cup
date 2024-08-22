@@ -1,21 +1,26 @@
 package com.compi2.simpascal.sintactico;
 
 import com.compi2.simpascal.*;
+import com.compi2.simpascal.instrucciones.*;
+import com.compi2.simpascal.instrucciones.operadores.OpAritmeticos;
+import com.compi2.simpascal.instrucciones.tipos.Dato;
+import com.compi2.simpascal.instrucciones.tipos.Tipo;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java_cup.runtime.*;
+import java_cup.runtime.XMLElement;
 
 // parser
 parser code {:
-    //public LinkedList<Errores> listaErrores = new LinkedList<>();
+    public LinkedList<Errores> listaErrores = new LinkedList<>();
 
-    public void syntax_error(Symbol s){
-        System.out.println("SINTACTICO RECUPERABLE No se esperaba el componente " +s.value);
-    }
+                public void syntax_error(Symbol s){
+                    listaErrores.add(new Errores("SINTACTICO RECUPERABLE", "No se esperaba el componente "+s.value, s.left, s.right));
+                }
 
-    public void unrecovered_syntax_error (Symbol s){
-        System.out.println("SINTACTICO NO RECUPERABLE No se esperaba el componente " + s.value);
-    }
+                public void unrecovered_syntax_error (Symbol s){
+                    listaErrores.add(new Errores("SINTACTICO NO RECUPERABLE", "No se esperaba el componente " + s.value, s.left, s.right));
+                }
 :}
 
 action code
@@ -23,6 +28,7 @@ action code
 :}
 
 //terminales
+
 terminal String                         CADENA, ENTERO, DECIMAL, ID, COMA, PUNTOCOMA, PUNTO, DOSPUNTOS;
 terminal char                           CARACTER;
 terminal                                ARRAY, BEGIN, BOOLEAN, CHAR, CONST, DOWNTO, ELSE, END,
@@ -34,12 +40,14 @@ terminal                                IGUAL, IGUALA, DIFERENTEA, MAYOR, MENOR,
 terminal                                L_LLAVE, R_LLAVE, L_PAREN, R_PAREN, L_CORCH, R_CORCH, FLECHA, BARRA;
 terminal                                OR, AND, NOT;
 
-//no terminales
-nonterminal                             INICIO, INSTRUCCIONES;
-nonterminal                             INSTRUCCION;
 
-nonterminal                             TIPOS;
-nonterminal                             EXPRESION, EARIT, ELOGIC, ERELAC, ENATIV, CASTEO;
+//no terminales
+
+nonterminal LinkedList<Instruccion>     INICIO, INSTRUCCIONES;
+nonterminal Instruccion                 INSTRUCCION;
+
+nonterminal Tipo                        TIPOS;
+nonterminal Instruccion                 EXPRESION, EARIT, ELOGIC, ERELAC, ENATIV, CASTEO;
 
 
 
@@ -53,39 +61,43 @@ precedence right    UMENOS;
 
 start with INICIO;
 
-INICIO ::= INSTRUCCIONES:a      {:   System.out.println("Instrucciones:");   :}
+INICIO ::= INSTRUCCIONES:a      {:  RESULT = a; 
+                                    System.out.println("Instrucciones:");   
+                                :}
 ;
 
-INSTRUCCIONES ::= INSTRUCCIONES:a INSTRUCCION:b                     {: System.out.println("Instrucciones + instruccion");  :}
-                | INSTRUCCION:a                                     {: System.out.println("Instruccion");  :}
+INSTRUCCIONES ::= INSTRUCCIONES:a INSTRUCCION:b                     {:  RESULT = a; RESULT.add(b); System.out.println("Instrucciones + instruccion");  :}
+                | INSTRUCCION:a                                     {:  RESULT = new LinkedList<>(); RESULT.add(a); System.out.println("Instruccion");  :}
 ;
 
-INSTRUCCION ::= EXPRESION: a                                        {: System.out.println("Expresion");  :}
+INSTRUCCION ::= EXPRESION: a                                        {:  RESULT = a;
+                                                                        System.out.println("Expresion");  
+                                                                    :}
               | error PUNTOCOMA
 ;
 
-TIPOS ::= INTEGER       {:   :}
-        | REAL    {:   :}
-        | CHAR      {:   :}
-        | STRING    {:   :}
-        | BOOLEAN      {:   :}
-;
+/*TIPOS ::= INTEGER       {:  RESULT = new Tipo(Dato.ENTERO);     :}
+        | REAL          {:  RESULT = new Tipo(Dato.DECIMAL);    :}
+        | CHAR          {:  RESULT = new Tipo(Dato.CARACTER);   :}
+        | STRING        {:  RESULT = new Tipo(Dato.CADENA);     :}
+        | BOOLEAN       {:  RESULT = new Tipo(Dato.BOOLEANO);   :}
+;*/ 
 
-EXPRESION ::= EARIT:a       {: System.out.println("Aritmetica");  :}
-            | ERELAC:a      {: System.out.println("Aritmetica");  :}
-            | ELOGIC:a      {: System.out.println("Aritmetica");  :}
-            | ENATIV:a      {: System.out.println("Aritmetica");  :}
-            | CASTEO:a      {: System.out.println("Aritmetica");  :}
+EXPRESION ::= EARIT:a       {: RESULT = a; System.out.println("Aritmetica");  :}
+            | ERELAC:a      {: RESULT = a; System.out.println("Aritmetica");  :}
+            | ELOGIC:a      {: RESULT = a; System.out.println("Aritmetica");  :}
+            | ENATIV:a      {: RESULT = a; System.out.println("Aritmetica");  :}
+            | CASTEO:a      {: RESULT = a; System.out.println("Aritmetica");  :}
             | ID:a          {: System.out.println("Variable"); :}
             | ID:a L_LLAVE EXPRESION:b R_LLAVE  {:  System.out.println("Variable array");   :}
             | L_PAREN EXPRESION:a R_PAREN       {:  System.out.println("En parentesis");  :}
 ;
 
-EARIT ::= MENOS EXPRESION:a                  {:  System.out.println("Negacion de " + a); :} %prec UMENOS
-        | EXPRESION:a MAS EXPRESION:b        {:  System.out.println("Suma de " + a + " y " + b); :}
-        | EXPRESION:a MENOS EXPRESION:b      {:  System.out.println("Resta de " + a + " y " + b); :}
-        | EXPRESION:a MULTI EXPRESION:b      {:  System.out.println("Multiplicacion de " + a + " y " + b); :}
-        | EXPRESION:a DIV EXPRESION:b        {:  System.out.println("Division de " + a + " entre " + b); :}
+EARIT ::= MENOS EXPRESION:a                  {:  RESULT = new Aritmetico(a, OpAritmeticos.NEGACION, aleft, aright); :} %prec UMENOS
+        | EXPRESION:a MAS EXPRESION:b        {:  RESULT = new Aritmetico(a, b, OpAritmeticos.SUMA, aleft, aright); :}
+        | EXPRESION:a MENOS EXPRESION:b      {:  RESULT = new Aritmetico(a, b, OpAritmeticos.RESTA, aleft, aright); :}
+        | EXPRESION:a MULTI EXPRESION:b      {:  RESULT = new Aritmetico(a, b, OpAritmeticos.MULTIPLICACION, aleft, aright); :}
+        | EXPRESION:a DIV EXPRESION:b        {:  RESULT = new Aritmetico(a, b, OpAritmeticos.DIVISION, aleft, aright);  :}
 ;
 
 ERELAC ::= EXPRESION:a IGUALA EXPRESION:b     {: System.out.println(a + " es igual a " + b); :}
@@ -101,10 +113,10 @@ ELOGIC ::= NOT EXPRESION:a                    {: System.out.println("Not " + a);
          | EXPRESION:a AND EXPRESION:b        {: System.out.println(a + " y " + b); :}
 ;
 
-ENATIV ::= ENTERO:a      {:   RESULT = Integer.parseInt(a);       :}
-         | DECIMAL:a     {:   RESULT = Double.parseDouble(a);    :}
-         | CADENA:a      {:   RESULT = a;                         :}
-         | CARACTER:a    {:   RESULT = a;                       :}
+ENATIV ::= ENTERO:a      {:   RESULT = new Nativo(Integer.parseInt(a), new Tipo(Dato.ENTERO), aleft, aright);       :}
+         | DECIMAL:a     {:   RESULT = new Nativo(Double.parseDouble(a), new Tipo(Dato.DECIMAL), aleft, aright);    :}
+         | CADENA:a      {:   RESULT = new Nativo(a, new Tipo(Dato.CADENA), aleft, aright);                         :}
+         | CARACTER:a    {:   RESULT = new Nativo(a, new Tipo(Dato.CARACTER), aleft, aright);                       :}
 ;
 
 

@@ -1,6 +1,7 @@
 package com.compi2.simpascal.interfaz;
 
 //import com.compi1.javacraft.archivos.ArchivoManager;
+import com.compi2.simpascal.ArchivosManager;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.io.FileNotFoundException;
@@ -51,7 +52,7 @@ public class TabPanel extends javax.swing.JPanel {
         actual.getCloseButton().setForeground(Color.white);
         actual.colorSeleccionado = true;
 
-        textAreaPanel1.textArea.setText(archivosAbiertos.get(0).getContenidoTextArea()); //Coloca el texto del Tab en el textPane
+        textAreaPanel1.textArea.setText(archivosAbiertos.get(0).getContenidoTextArea());
 
         internalPanel.add(tb, 0);
 
@@ -167,11 +168,11 @@ public class TabPanel extends javax.swing.JPanel {
     private javax.swing.JPanel internalPanel;
     private javax.swing.JButton nuevoArchivo;
     private javax.swing.JScrollPane scrollPane;
-    private com.compi2.simpascal.interfaz.TextAreaPanel textAreaPanel1;
+    public com.compi2.simpascal.interfaz.TextAreaPanel textAreaPanel1;
     // End of variables declaration//GEN-END:variables
 
     public void agregarNuevoArchivo() throws FileNotFoundException {
-        //ArchivoManager cr;
+        ArchivosManager cr;
         String fileName = "";
         Tab newTab = new Tab();
         boolean cancelar = false;
@@ -207,10 +208,10 @@ public class TabPanel extends javax.swing.JPanel {
                 }
             }
             case 1 -> {
-                /*cr = new ArchivoManager();
+                cr = new ArchivosManager();
                 String[] archivo = cr.cargar();
                 if (archivo != null) {
-                    
+
                     fileName = archivo[0];
                     for (Tab archivoAbierto : archivosAbiertos) {
                         if (archivoAbierto.getNombreArchivo().equals(fileName)) {
@@ -220,23 +221,25 @@ public class TabPanel extends javax.swing.JPanel {
                     }
                     for (Tab archivosAbierto : archivosAbiertos) {
                         if (archivosAbierto.getBotonAsignado() == actual.getMainButton()) {
-                            archivosAbierto.setContenidoTextArea(textPanel.textArea.getText());
+                            archivosAbierto.setContenidoTextArea(textAreaPanel1.textArea.getText());
                             break;
                         }
                     }
                     newTab.setContenidoTextArea(archivo[1]);
-                    
+
                 } else {
                     cancelar = true;
-                }*/
-                JOptionPane.showMessageDialog(null, "En construccion");
-                cancelar = true;
+                }
             }
             default ->
                 cancelar = true;
         }
 
         if (!cancelar) {
+            if (!textAreaPanel1.textArea.isEditable()) {
+                textAreaPanel1.textArea.setEditable(true);
+                textAreaPanel1.textArea.setEnabled(true);
+            }
             TabButton nuevoBoton = new TabButton(fileName);
             nuevoBoton.setButtonText(fileName);
             newTab.setNombreArchivo(fileName);
@@ -308,10 +311,10 @@ public class TabPanel extends javax.swing.JPanel {
 
                     if (anterior != null) {
                         actual = anterior;
-                        actual.setBorder(new LineBorder(estadoNormal, 2, true));
-                        actual.setBackground(Color.white);
-                        actual.getMainButton().setForeground(estadoNormal);
-                        actual.getCloseButton().setForeground(estadoNormal);
+                        actual.setBorder(new LineBorder(seleccionado, 2, true));
+                        actual.setBackground(seleccionado);
+                        actual.getMainButton().setForeground(Color.white);
+                        actual.getCloseButton().setForeground(Color.white);
                         actual.colorSeleccionado = true;
 
                         for (int j = 0; j < archivosAbiertos.size(); j++) {
@@ -324,6 +327,13 @@ public class TabPanel extends javax.swing.JPanel {
                     } else {
                         textAreaPanel1.textArea.setText("");
                         actual = null;
+
+                    }
+
+                    if (archivosAbiertos.isEmpty()) {
+                        textAreaPanel1.textArea.setText("");
+                        textAreaPanel1.textArea.setEditable(false);
+                        textAreaPanel1.textArea.setEnabled(false);
                     }
 
                     break;
