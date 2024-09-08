@@ -1,6 +1,8 @@
 package com.compi2.simpascal.instrucciones.simbolos;
 
+import com.compi2.simpascal.instrucciones.Funcion;
 import com.compi2.simpascal.instrucciones.Instruccion;
+import com.compi2.simpascal.instrucciones.Procedimiento;
 import java.util.LinkedList;
 
 /**
@@ -8,11 +10,13 @@ import java.util.LinkedList;
  * @author mgome
  */
 public class Arbol {
+
     private LinkedList<Instruccion> instrucciones;
     private String consola;
     private Tabla tablaGlobal;
     public LinkedList<Error> errores;
-    private LinkedList<Instruccion> funciones;
+    private LinkedList<Funcion> funciones;
+    private LinkedList<Procedimiento> procedimientos;
     public int contador;
 
     public Arbol(LinkedList<Instruccion> instrucciones) {
@@ -60,28 +64,47 @@ public class Arbol {
         this.consola += valor + "\n";
     }
 
-    public LinkedList<Instruccion> getFunciones() {
+    public LinkedList<Funcion> getFunciones() {
         return funciones;
     }
 
-    public void setFunciones(LinkedList<Instruccion> funciones) {
+    public void setFunciones(LinkedList<Funcion> funciones) {
         this.funciones = funciones;
     }
 
-    public void addFunciones(Instruccion funcion) {
+    public void addFunciones(Funcion funcion) {
         this.funciones.add(funcion);
     }
 
-    /*public Instruccion getFuncion(String id) {
-        for (var i : this.funciones) {
-            if (i instanceof Metodo metodo) {
-                if (metodo.id.equalsIgnoreCase(id)) {
-                    return i;
-                }
+    public Funcion getFuncion(String id) {
+        for (var f : this.funciones) {
+            if (f.nombre.equalsIgnoreCase(id)) {
+                return f;
             }
         }
         return null;
-    }*/
+    }
+    
+    public LinkedList<Procedimiento> getProcedimientos() {
+        return procedimientos;
+    }
+
+    public void setProcedimientos(LinkedList<Procedimiento> procedimientos) {
+        this.procedimientos = procedimientos;
+    }
+
+    public void addProcedimiento(Procedimiento procedimiento) {
+        this.procedimientos.add(procedimiento);
+    }
+
+    public Instruccion getProcedimiento(String id) {
+        for (var p : this.procedimientos) {
+            if (p.nombre.equalsIgnoreCase(id)) {
+                return p;
+            }
+        }
+        return null;
+    }
 
     public int getContador() {
         this.contador++;

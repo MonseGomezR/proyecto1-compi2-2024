@@ -1,53 +1,103 @@
 package com.compi2.simpascal.sintactico;
 
-import com.compi2.simpascal.*;
 import com.compi2.simpascal.instrucciones.*;
 import com.compi2.simpascal.instrucciones.operadores.OpAritmeticos;
-import com.compi2.simpascal.instrucciones.tipos.Dato;
-import com.compi2.simpascal.instrucciones.tipos.Tipo;
-import java.util.HashMap;
+import com.compi2.simpascal.instrucciones.simbolos.Simbolo;
+import com.compi2.simpascal.instrucciones.tipos.*;
 import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.List;
 import java_cup.runtime.*;
-import java_cup.runtime.XMLElement;
 
 // parser
 parser code {:
     public LinkedList<Errores> listaErrores = new LinkedList<>();
+    public String programName = "";
 
-                public void syntax_error(Symbol s){
-                    listaErrores.add(new Errores("SINTACTICO RECUPERABLE", "No se esperaba el componente "+s.value, s.left, s.right));
-                }
+    public class symnames {
+        public static final String[] tokens = {
+            "ARRAY", "BEGIN", "BOOLEAN", "CHAR", "CONST", "DOWNTO", "DO", "ELSE", "END",
+            "FILE", "FOR", "FUNCTION", "GOTO", "IF", "IN", "INTEGER", "LABEL", "NIL", 
+            "OF", "ON", "PACKED", "PROCEDURE", "PROGRAM", "READLN", "REAL", "RECORD", 
+            "REPEAT", "SET", "STRING", "THEN", "TO", "TYPE", "UNTIL", "VAR", "WHILE", 
+            "WITH", "WRITELN", "MAS", "MENOS", "MULTI", "DIV", "MOD", "UMENOS", 
+            "ASIGNACION", "IGUALA", "DIFERENTEA", "MAYOR", "MENOR", "MAYORIGUAL", 
+            "MENORIGUAL", "COMA", "PUNTOCOMA", "PUNTO", "DOSPUNTOS", "L_LLAVE", 
+            "R_LLAVE", "L_PAREN", "R_PAREN", "L_CORCH", "R_CORCH", "FLECHA", "BARRA", 
+            "CADENA", "ENTERO", "DECIMAL", "ID", "CARACTER", "OR", "AND", "NOT"
+        };
+    }
 
-                public void unrecovered_syntax_error (Symbol s){
-                    listaErrores.add(new Errores("SINTACTICO NO RECUPERABLE", "No se esperaba el componente " + s.value, s.left, s.right));
-                }
+    public void syntax_error(Symbol s) {
+        if(s.toString().equals("#0")) {
+            listaErrores.add(new Errores("SINTACTICO RECUPERABLE" , "Final del archivo antes de lo esperado? No se, hay algo mal we", s.left, s.right));
+        }
+    }
+
+    public void unrecovered_syntax_error (Symbol s) {
+        // Obtener los IDs de los tokens esperados
+        int[] expectedTokens = expected_token_ids();
+
+        // Construir una lista de los nombres de los tokens esperados
+        StringBuilder expectedSymbols = new StringBuilder();
+        for (int tokenId : expectedTokens) {
+            expectedSymbols.append(symnames.tokens[tokenId]).append(", ");
+        }
+
+        // Eliminar la última coma y espacio si hay tokens esperados
+        if (expectedSymbols.length() > 2) {
+            expectedSymbols.setLength(expectedSymbols.length() - 2);
+        }
+
+        // Crear el mensaje de error con el símbolo que se encontró y los que se esperaban
+        listaErrores.add(new Errores("SINTACTICO NO RECUPERABLE", 
+            "No se esperaba el componente '" + s.value + "'. Se esperaba: " + expectedSymbols.toString(), 
+            s.left, s.right));
+    }
 :}
 
 action code
 {:
 :}
 
-//terminales
+// ---Terminales - Palabras clave
+terminal ARRAY, BEGIN, BOOLEAN, CHAR, CONST, DOWNTO, DO, ELSE, END,
+         FILE, FOR, FUNCTION, GOTO, IF, IN, INTEGER, LABEL,
+         NIL, OF, ON, PACKED, PROCEDURE, PROGRAM, READLN, REAL,
+         RECORD, REPEAT, SET, STRING, THEN, TO, TYPE, UNTIL, VAR, WHILE, WITH, WRITELN;
 
-terminal String                         CADENA, ENTERO, DECIMAL, ID, COMA, PUNTOCOMA, PUNTO, DOSPUNTOS;
-terminal char                           CARACTER;
-terminal                                ARRAY, BEGIN, BOOLEAN, CHAR, CONST, DOWNTO, ELSE, END,
-                                        FILE, FOR, FUNCTION, GOTO, IF, IN, INTEGER, LABEL,
-                                        NIL, OF, ON, PACKED, PROCEDURE, PROGRAM, READLN, REAL,
-                                        RECORD, REPEAT, SET, STRING, THEN, TO, TYPE, UNTIL, VAR, WHILE, WITH, WRITELN;
-terminal                                MAS, MENOS, MULTI, DIV, MOD, UMENOS, ASIGNACION;
-terminal                                IGUAL, IGUALA, DIFERENTEA, MAYOR, MENOR, MAYORIGUAL, MENORIGUAL;
-terminal                                L_LLAVE, R_LLAVE, L_PAREN, R_PAREN, L_CORCH, R_CORCH, FLECHA, BARRA;
-terminal                                OR, AND, NOT;
+// ---Terminales - Operadores
+terminal MAS, MENOS, MULTI, DIV, MOD, UMENOS, ASIGNACION;
+terminal IGUALA, DIFERENTEA, MAYOR, MENOR, MAYORIGUAL, MENORIGUAL;
+
+// ---Terminales - Caracteres y Separadores
+terminal COMA, PUNTOCOMA, PUNTO, DOSPUNTOS, L_LLAVE, R_LLAVE, L_PAREN, R_PAREN, L_CORCH, R_CORCH, FLECHA, BARRA;
+
+// ---Terminales - Tipos de datos
+terminal String CADENA, ENTERO, DECIMAL, ID;
+terminal char CARACTER;
+
+// ---Terminales - Operadores lógicos
+terminal OR, AND, NOT;
 
 
-//no terminales
+// ---No Terminales
 
-nonterminal LinkedList<Instruccion>     INICIO, INSTRUCCIONES;
-nonterminal Instruccion                 INSTRUCCION;
+nonterminal LinkedList<Instruccion>     inicio, i_instrucciones, instrucciones;
+nonterminal Instruccion                 instruccion;
 
-nonterminal Tipo                        TIPOS;
-nonterminal Instruccion                 EXPRESION, EARIT, ELOGIC, ERELAC, ENATIV, CASTEO;
+nonterminal Tipo                        tipos;
+nonterminal Instruccion                 expresion, e_arit, e_logic, e_relac, e_nativ, casteo;
+nonterminal LinkedList<Instruccion>     i_declaracion, i_funciones, i_procedimientos, i_fun_proc;
+nonterminal Instruccion                 i_write, i_asignar, funcion, procedimiento;
+nonterminal Instruccion                 dec_const, dec_var, llam_fun;
+nonterminal Simbolo                     constante;
+nonterminal LinkedList<Simbolo>         constantes_list;
+nonterminal LinkedList<HashMap>         parametros;
+nonterminal LinkedList<String>          variable;
+nonterminal int[]                       rango;
+nonterminal LinkedList<Simbolo>         variables_list, var_aux;
+nonterminal LinkedList<Instruccion>     write_aux, llam_par;
 
 
 
@@ -59,64 +109,264 @@ precedence left     MAS, MENOS;
 precedence left     MULTI, DIV, MOD;
 precedence right    UMENOS;
 
-start with INICIO;
+start with inicio;
 
-INICIO ::= INSTRUCCIONES:a      {:  RESULT = a; 
-                                    System.out.println("Instrucciones:");   
+inicio  ::= PROGRAM ID:c PUNTOCOMA 
+            i_declaracion:a  
+            i_fun_proc:fp 
+            i_instrucciones:b PUNTO        {:  
+                                        RESULT = new LinkedList<>();
+                                        programName = c;
+                                        RESULT.addAll(a);
+                                        RESULT.addAll(fp);
+                                        RESULT.addAll(b);
+                                    :}
+;
+
+i_fun_proc ::= i_funciones:a i_procedimientos:b {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.addAll(a); 
+                                                    RESULT.addAll(b); 
+                                                :}
+               | i_funciones:a                    {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.addAll(a); 
+                                                :}
+               | i_procedimientos:b             {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.addAll(b); 
+                                                :}
+               | /* vacío */                    {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                :}
+;
+
+i_instrucciones ::= BEGIN instrucciones:a END  {: RESULT = a; :}
+                |   error:e                          {: 
+                                                        listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
+                                                            "Error en i_instrucciones", 
+                                                             eleft, eright));
+                                                        RESULT = new LinkedList<>(); :}
+;
+
+instrucciones ::= instrucciones:a instruccion:b     {:  
+                                                        RESULT = a; 
+                                                        if(b != null) {
+                                                            RESULT.add(b);
+                                                        }
+                                                    :}
+                | instruccion:a                     {:  
+                                                        RESULT = new LinkedList<>(); 
+                                                        if(a != null) {
+                                                            RESULT.add(a);
+                                                        }
+                                                    :}
+;
+
+instruccion ::= i_write:a PUNTOCOMA      {:  RESULT = a; :}
+            |   i_asignar:a PUNTOCOMA    {:  RESULT = a; :}
+            |   error:e                   {: 
+                                            listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
+                                        "Instrucción no válida.", 
+                                        eleft, eright));
+                                    RESULT = null;
                                 :}
 ;
 
-INSTRUCCIONES ::= INSTRUCCIONES:a INSTRUCCION:b                     {:  RESULT = a; RESULT.add(b); System.out.println("Instrucciones + instruccion");  :}
-                | INSTRUCCION:a                                     {:  RESULT = new LinkedList<>(); RESULT.add(a); System.out.println("Instruccion");  :}
+tipos   ::= INTEGER     {:  RESULT = new Tipo(Dato.ENTERO);     :}
+        |   REAL        {:  RESULT = new Tipo(Dato.DECIMAL);    :}
+        |   CHAR        {:  RESULT = new Tipo(Dato.CARACTER);   :}
+        |   STRING      {:  RESULT = new Tipo(Dato.CADENA);     :}
+        |   BOOLEAN     {:  RESULT = new Tipo(Dato.BOOLEANO);   :}
 ;
 
-INSTRUCCION ::= EXPRESION: a                                        {:  RESULT = a;
-                                                                        System.out.println("Expresion");  
+i_write   ::= WRITELN L_PAREN write_aux:a R_PAREN       {:  RESULT = new WriteLn(a, aleft, aright); :}
+            | error:e                                   {:  listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
+                                                                "Instrucción Writeln no válida.", 
+                                                                eleft, eright));
+                                                            RESULT = null;
+                                                        :}
+;
+
+write_aux   ::= write_aux:a COMA expresion:b        {:  
+                                                        RESULT = a; 
+                                                        RESULT.add(b);
+                                                    :}
+            |   expresion:a                         {:  
+                                                        RESULT = new LinkedList<>(); 
+                                                        RESULT.add(a);
+                                                    :}
+;
+
+i_asignar ::=   ID:a ASIGNACION expresion:b               {:  RESULT = new AsignacionVar(a, b, aleft, aright);    :}
+
+
+
+
+
+;
+
+i_declaracion ::= dec_const:a dec_var:b         {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.add(a); 
+                                                    RESULT.add(b); 
+                                                :}
+               | dec_const:a                    {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.add(a); 
+                                                :}
+               | dec_var:b                      {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.add(b); 
+                                                :}
+               | /* vacío */                    {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                :}
+;
+
+
+dec_const ::= CONST constantes_list:a PUNTO         {:
+                                                        RESULT = new DecConst(a, aleft, aright);
+                                                    :}
+;
+constantes_list ::= constantes_list:a  constante:b          {: 
+                                                                RESULT = a; 
+                                                                RESULT.add(b); 
+                                                            :}
+                  | constante:a                             {: 
+                                                                RESULT = new LinkedList<>(); 
+                                                                RESULT.add(a);
+                                                            
+                                                            :}
+;
+constante ::= ID:a IGUALA expresion:b PUNTOCOMA             {: RESULT = new Simbolo(b.tipo, a, b, false); :}
+;
+
+
+dec_var   ::= VAR variables_list:a PUNTO                    {:  RESULT = new DecVar(a, aleft, aright); :}
+;
+variables_list ::=  variables_list:a var_aux:b              {:  RESULT = a; RESULT.addAll(b);   :}
+                |   var_aux:a                               {:  RESULT = new LinkedList<>(); RESULT.addAll(a);   :}
+;
+var_aux ::= variable:a DOSPUNTOS tipos:b PUNTOCOMA          {:  
+                                                                RESULT = new LinkedList<>();
+                                                                for(String id : a) {
+                                                                    Simbolo s = new Simbolo(b, id, null, true);
+                                                                    RESULT.add(s);
+                                                                }
+                                                            :}
+        |   variable:a DOSPUNTOS ARRAY L_LLAVE rango:c R_LLAVE OF tipos:b PUNTOCOMA     {:  RESULT = new LinkedList<>();
+                                                                                            for(String id : a) {
+                                                                                                Simbolo s = new Simbolo(b, id, c, true);
+                                                                                                RESULT.add(s);
+                                                                                            }
+                                                                                        :}
+;
+rango ::=   ENTERO:a PUNTO PUNTO ENTERO:b       {:  RESULT = new int[]{Integer.parseInt(a), Integer.parseInt(b)}; :}
+;
+
+variable ::=    variable:a COMA ID:b            {:  
+                                                    RESULT = a;  
+                                                    RESULT.add(b);  
+                                                :}
+            |   ID:a                            {:  
+                                                    RESULT = new LinkedList<>();
+                                                    RESULT.add(a);
+                                                :}
+;
+
+i_funciones ::= i_funciones:a funcion:b         {:
+                                                    RESULT = a;
+                                                    RESULT.add(b);
+                                                :}
+            |   funcion:a                       {:
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.add(a); 
+                                                :}
+;
+funcion ::= FUNCTION:f ID:id L_PAREN parametros:p R_PAREN DOSPUNTOS tipos:t   
+            i_declaracion:dec   
+            i_instrucciones:i PUNTOCOMA {:  RESULT = new Funcion(id, t, p, dec, i, fleft, fright);    :}
+;
+
+llam_fun ::= ID:id L_PAREN llam_par:lp R_PAREN              {:  RESULT = new LlamadaFun(id, lp, idleft, idright);  :}
+;
+
+llam_par ::= llam_par:a COMA expresion:b    {:  RESULT = a; RESULT.add(b);  :}
+             | expresion:a                  {:  RESULT = new LinkedList<Instruccion>(); RESULT.add(a); :}
+;
+
+i_procedimientos ::= i_procedimientos:a procedimiento:b             {:  
+                                                                        RESULT = a ;
+                                                                        RESULT.add(b); 
                                                                     :}
-              | error PUNTOCOMA
+                |   procedimiento:a                                 {:  
+                                                                        RESULT = new LinkedList<>(); 
+                                                                        RESULT.add(a);  
+                                                                    :}
+;
+procedimiento ::= PROCEDURE:p ID:id L_PAREN parametros:pr R_PAREN
+                  i_declaracion:dec   
+                  i_instrucciones:i  PUNTOCOMA                               {:  RESULT = new Procedimiento(id, pr, dec, i, new Tipo(Dato.VOID), pleft, pright); :}
+
+;
+parametros ::=  parametros:a COMA ID:id DOSPUNTOS tipos:t           {:  
+                                                                        RESULT = a;
+                                                                        var mapa = new HashMap<String, Object>();
+                                                                        mapa.put("id", id);
+                                                                        mapa.put("tipo", t);
+                                                                        RESULT.add(mapa);
+                                                                    :}
+            |   ID:id DOSPUNTOS tipos:t                             {:  
+                                                                        RESULT = new LinkedList<HashMap>(); 
+                                                                        var mapa = new HashMap<String, Object>();
+                                                                        mapa.put("id", id);
+                                                                        mapa.put("tipo", t);
+                                                                        RESULT.add(mapa);
+                                                                    :}
+            |   ID:id                                               {:  
+                                                                        listaErrores.add(new Errores("SINTACTICO RECUPERABLE", "Se esperaba una coma después de la declaración de parámetros", idleft, idright));
+                                                                        RESULT = new LinkedList<HashMap>(); 
+                                                                    :}
 ;
 
-/*TIPOS ::= INTEGER       {:  RESULT = new Tipo(Dato.ENTERO);     :}
-        | REAL          {:  RESULT = new Tipo(Dato.DECIMAL);    :}
-        | CHAR          {:  RESULT = new Tipo(Dato.CARACTER);   :}
-        | STRING        {:  RESULT = new Tipo(Dato.CADENA);     :}
-        | BOOLEAN       {:  RESULT = new Tipo(Dato.BOOLEANO);   :}
-;*/ 
 
-EXPRESION ::= EARIT:a       {: RESULT = a; System.out.println("Aritmetica");  :}
-            | ERELAC:a      {: RESULT = a; System.out.println("Aritmetica");  :}
-            | ELOGIC:a      {: RESULT = a; System.out.println("Aritmetica");  :}
-            | ENATIV:a      {: RESULT = a; System.out.println("Aritmetica");  :}
-            | CASTEO:a      {: RESULT = a; System.out.println("Aritmetica");  :}
-            | ID:a          {: System.out.println("Variable"); :}
-            | ID:a L_LLAVE EXPRESION:b R_LLAVE  {:  System.out.println("Variable array");   :}
-            | L_PAREN EXPRESION:a R_PAREN       {:  System.out.println("En parentesis");  :}
+expresion ::=   e_arit:a                            {:  RESULT = a; :}
+            |   e_relac:a                           {:  RESULT = a; :}
+            |   e_logic:a                           {:  RESULT = a; :}
+            |   e_nativ:a                           {:  RESULT = a; :}
+            |   casteo:a                            {:  RESULT = a; :}
+            |   ID:a                                {:  RESULT = new Acceso (a, aleft, aright); :}
+            |   ID:a L_LLAVE expresion:b R_LLAVE    {:  System.out.println("Variable array");   :}
+            |   L_PAREN expresion:a R_PAREN         {:  RESULT = a; :}
+            |   llam_fun:a                          {:  RESULT = a; :}
 ;
 
-EARIT ::= MENOS EXPRESION:a                  {:  RESULT = new Aritmetico(a, OpAritmeticos.NEGACION, aleft, aright); :} %prec UMENOS
-        | EXPRESION:a MAS EXPRESION:b        {:  RESULT = new Aritmetico(a, b, OpAritmeticos.SUMA, aleft, aright); :}
-        | EXPRESION:a MENOS EXPRESION:b      {:  RESULT = new Aritmetico(a, b, OpAritmeticos.RESTA, aleft, aright); :}
-        | EXPRESION:a MULTI EXPRESION:b      {:  RESULT = new Aritmetico(a, b, OpAritmeticos.MULTIPLICACION, aleft, aright); :}
-        | EXPRESION:a DIV EXPRESION:b        {:  RESULT = new Aritmetico(a, b, OpAritmeticos.DIVISION, aleft, aright);  :}
+e_arit ::=  MENOS expresion:a                                   {:  RESULT = new Aritmetico(a, OpAritmeticos.NEGACION, aleft, aright);          :} %prec UMENOS
+        |   expresion:a MULTI expresion:b                       {:  RESULT = new Aritmetico(a, b, OpAritmeticos.MULTIPLICACION, aleft, aright); :}
+        |   DIV L_PAREN expresion:a COMA expresion:b R_PAREN    {:  RESULT = new Aritmetico (a, b, OpAritmeticos.DIVISION, aleft, aright);      :}
+        |   MOD L_PAREN expresion:a COMA expresion:b R_PAREN    {:  RESULT = new Aritmetico (a, b, OpAritmeticos.MODULO, aleft, aright);        :}
+        |   expresion:a MAS expresion:b                         {:  RESULT = new Aritmetico(a, b, OpAritmeticos.SUMA, aleft, aright);           :}
+        |   expresion:a MENOS expresion:b                       {:  RESULT = new Aritmetico(a, b, OpAritmeticos.RESTA, aleft, aright);          :}
 ;
 
-ERELAC ::= EXPRESION:a IGUALA EXPRESION:b     {: System.out.println(a + " es igual a " + b); :}
-         | EXPRESION:a DIFERENTEA EXPRESION:b {: System.out.println(a + " es diferente a " + b); :}
-         | EXPRESION:a MAYOR EXPRESION:b      {: System.out.println(a + " es mayor que " + b); :}
-         | EXPRESION:a MENOR EXPRESION:b      {: System.out.println(a + " es menor que " + b); :}
-         | EXPRESION:a MAYORIGUAL EXPRESION:b {: System.out.println(a + " es mayor o igual a " + b); :}
-         | EXPRESION:a MENORIGUAL EXPRESION:b {: System.out.println(a + " es menor o igual a " + b); :}
+e_relac ::= expresion:a IGUALA expresion:b      {:  System.out.println(a + " es igual a " + b);         :}
+         |  expresion:a DIFERENTEA expresion:b  {:  System.out.println(a + " es diferente a " + b);     :}
+         |  expresion:a MAYOR expresion:b       {:  System.out.println(a + " es mayor que " + b);       :}
+         |  expresion:a MENOR expresion:b       {:  System.out.println(a + " es menor que " + b);       :}
+         |  expresion:a MAYORIGUAL expresion:b  {:  System.out.println(a + " es mayor o igual a " + b); :}
+         |  expresion:a MENORIGUAL expresion:b  {:  System.out.println(a + " es menor o igual a " + b); :}
 ;
 
-ELOGIC ::= NOT EXPRESION:a                    {: System.out.println("Not " + a); :}
-         | EXPRESION:a OR EXPRESION:b         {: System.out.println(a + " o " + b); :}
-         | EXPRESION:a AND EXPRESION:b        {: System.out.println(a + " y " + b); :}
+e_logic ::= NOT expresion:a                     {:  System.out.println("Not " + a);     :}
+         |  expresion:a OR expresion:b          {:  System.out.println(a + " o " + b);  :}
+         |  expresion:a AND expresion:b         {:  System.out.println(a + " y " + b);  :}
 ;
 
-ENATIV ::= ENTERO:a      {:   RESULT = new Nativo(Integer.parseInt(a), new Tipo(Dato.ENTERO), aleft, aright);       :}
-         | DECIMAL:a     {:   RESULT = new Nativo(Double.parseDouble(a), new Tipo(Dato.DECIMAL), aleft, aright);    :}
-         | CADENA:a      {:   RESULT = new Nativo(a, new Tipo(Dato.CADENA), aleft, aright);                         :}
-         | CARACTER:a    {:   RESULT = new Nativo(a, new Tipo(Dato.CARACTER), aleft, aright);                       :}
+e_nativ ::= ENTERO:a        {:   RESULT = new Nativo(Integer.parseInt(a), new Tipo(Dato.ENTERO), aleft, aright);        :}
+         |  DECIMAL:a       {:   RESULT = new Nativo(Double.parseDouble(a), new Tipo(Dato.DECIMAL), aleft, aright);     :}
+         |  CADENA:a        {:   RESULT = new Nativo(a, new Tipo(Dato.CADENA), aleft, aright);                          :}
+         |  CARACTER:a      {:   RESULT = new Nativo(a, new Tipo(Dato.CARACTER), aleft, aright);                        :}
 ;
 
 

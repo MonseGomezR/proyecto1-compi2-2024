@@ -1,6 +1,7 @@
 package com.compi2.simpascal.lexico;
 
 import com.compi2.simpascal.sintactico.sym;
+import com.compi2.simpascal.instrucciones.Errores;
 import java.util.LinkedList;
 import java_cup.runtime.*;
 
@@ -8,13 +9,12 @@ import java_cup.runtime.*;
 
 
 %{
-    //public LinkedList<Errores> listaErrores = new LinkedList<>();
+    public LinkedList<Errores> listaErrores = new LinkedList<>();
 %}
 
 %init{
     yyline = 1;
     yycolumn = 1;
-    //listaErrores = new LinkedList<>();
 %init}
 
 %class Lexico
@@ -35,7 +35,6 @@ PR_BOOLEAN      =   "boolean"
 PR_CHAR         =   "char"
 PR_CONST        =   "const"
 
-PR_DIV          =   "div"
 PR_DO           =   "do"
 PR_DOWNTO       =   "downto"
 
@@ -50,7 +49,7 @@ PR_GOTO         =   "goto"
 
 PR_IF           =   "if"
 PR_IN           =   "in"
-PR_INTEGER      =   "integer"
+PR_INTEGER      =   "int"
 
 PR_LABEL        =   "label"
 
@@ -94,9 +93,9 @@ COMEN_ML        =   "{"\*[\s\S]*?\*"}"
 //Datos------------------------------------------------------------------------------------------------
 ENTERO          =   [0-9]+
 DECIMAL         =   [0-9]+"."[0-9]+
-CADENA          =   [\"]([^\"])*[\"]
-CARACTER        =   [']([^\'])*[']
-ID              =   [a-zA-Z0-9_]+
+CADENA          =   [']([^\'])*[']
+CARACTER        =   [\"]([^\"])*[\"]
+ID              =   [a-zA-Z0-9]+
 
 //Operadores Aritmeticos-------------------------------------------------------------------------------
 S_MAS           =   "+"
@@ -144,6 +143,7 @@ DOS_PUNTOS      =   ":"
 <YYINITIAL> {PR_CHAR}       { return new Symbol(sym.CHAR, yyline, yycolumn, yytext()); }
 <YYINITIAL> {PR_CONST}      { return new Symbol(sym.CONST, yyline, yycolumn, yytext()); }
 
+<YYINITIAL> {PR_DO}         { return new Symbol(sym.DO, yyline, yycolumn, yytext()); }
 <YYINITIAL> {PR_DOWNTO}     { return new Symbol(sym.DOWNTO, yyline, yycolumn, yytext()); }
 
 <YYINITIAL> {PR_ELSE}       { return new Symbol(sym.ELSE, yyline, yycolumn, yytext()); }
@@ -239,4 +239,4 @@ DOS_PUNTOS      =   ":"
 
 <YYINITIAL> {ID}            { return new Symbol(sym.ID, yyline, yycolumn,yytext());}
 
-<YYINITIAL> .               { System.out.println("error");}
+<YYINITIAL> .               { listaErrores.add(new Errores("LEXICO", "El caracter " + yytext() + " NO pertenece al lenguaje", yyline, yycolumn));}

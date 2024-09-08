@@ -19,11 +19,13 @@ import javax.swing.JPanel;
 public class TabButton extends JPanel {
 
     private JButton mainButton;
+    public String name;
     private JButton closeButton;
     private final Color transparente = new Color(0, 0, 0, 0);
     public boolean colorSeleccionado = false;
 
     public TabButton(String buttonText) {
+        name = buttonText;
         setLayout(new BorderLayout());
         setBackground(estadoNormal);
         int ancho = buttonText.length() * 13 + 15;

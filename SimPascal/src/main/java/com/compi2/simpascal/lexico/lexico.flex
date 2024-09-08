@@ -35,7 +35,6 @@ PR_BOOLEAN      =   "boolean"
 PR_CHAR         =   "char"
 PR_CONST        =   "const"
 
-PR_DIV          =   "div"
 PR_DO           =   "do"
 PR_DOWNTO       =   "downto"
 
@@ -50,7 +49,7 @@ PR_GOTO         =   "goto"
 
 PR_IF           =   "if"
 PR_IN           =   "in"
-PR_INTEGER      =   "integer"
+PR_INTEGER      =   "int"
 
 PR_LABEL        =   "label"
 
@@ -94,9 +93,9 @@ COMEN_ML        =   "{"\*[\s\S]*?\*"}"
 //Datos------------------------------------------------------------------------------------------------
 ENTERO          =   [0-9]+
 DECIMAL         =   [0-9]+"."[0-9]+
-CADENA          =   [\"]([^\"])*[\"]
-CARACTER        =   [']([^\'])*[']
-ID              =   [a-zA-Z0-9_]+
+CARACTER        =   \'([^\n\\'])\' 
+CADENA          =   [']([^\'])*[']
+ID              =   [a-zA-Z0-9]+
 
 //Operadores Aritmeticos-------------------------------------------------------------------------------
 S_MAS           =   "+"
@@ -144,6 +143,7 @@ DOS_PUNTOS      =   ":"
 <YYINITIAL> {PR_CHAR}       { return new Symbol(sym.CHAR, yyline, yycolumn, yytext()); }
 <YYINITIAL> {PR_CONST}      { return new Symbol(sym.CONST, yyline, yycolumn, yytext()); }
 
+<YYINITIAL> {PR_DO}         { return new Symbol(sym.DO, yyline, yycolumn, yytext()); }
 <YYINITIAL> {PR_DOWNTO}     { return new Symbol(sym.DOWNTO, yyline, yycolumn, yytext()); }
 
 <YYINITIAL> {PR_ELSE}       { return new Symbol(sym.ELSE, yyline, yycolumn, yytext()); }
@@ -193,12 +193,13 @@ DOS_PUNTOS      =   ":"
 
 <YYINITIAL> {DECIMAL}       { return new Symbol(sym.DECIMAL, yyline, yycolumn, yytext()); }
 <YYINITIAL> {ENTERO}        { return new Symbol(sym.ENTERO, yyline, yycolumn, yytext()); }
+<YYINITIAL> {CARACTER}      { 
+                                char c = yytext().charAt(1); 
+                                return new Symbol(sym.CARACTER, yyline, yycolumn, c);
+                            }
 <YYINITIAL> {CADENA}        { String cadena = yytext();
                               cadena = cadena.substring(1, cadena.length()-1);
                               return new Symbol(sym.CADENA, yyline, yycolumn, cadena); }
-<YYINITIAL> {CARACTER}      { String caracter = yytext();
-                              caracter = caracter.substring(1, caracter.length()-1);
-                              return new Symbol(sym.CARACTER, yyline, yycolumn, caracter.toCharArray()[0]); }
 
 <YYINITIAL> {O_LLAVE}    { return new Symbol(sym.L_LLAVE, yyline, yycolumn, yytext()); }
 <YYINITIAL> {C_LLAVE}    { return new Symbol(sym.R_LLAVE, yyline, yycolumn, yytext()); }
@@ -232,11 +233,12 @@ DOS_PUNTOS      =   ":"
 <YYINITIAL> {OL_AND}        { return new Symbol(sym.AND, yyline, yycolumn, yytext()); }
 <YYINITIAL> {OL_NOT}        { return new Symbol(sym.NOT, yyline, yycolumn, yytext()); }
 
+
+<YYINITIAL> {ID}            { return new Symbol(sym.ID, yyline, yycolumn, yytext()); }
+
 <YYINITIAL> {BLANCOS}       { /*Ignorar*/ }
 <YYINITIAL> {COMEN_UL}      { /*Ignorar*/ }
 <YYINITIAL> {COMEN_ML}      { /*Ignorar*/ }
 <YYINITIAL> {SALTO}         { /*Ignorar*/ }
-
-<YYINITIAL> {ID}            { return new Symbol(sym.ID, yyline, yycolumn,yytext());}
 
 <YYINITIAL> .               { listaErrores.add(new Errores("LEXICO", "El caracter " + yytext() + " NO pertenece al lenguaje", yyline, yycolumn));}

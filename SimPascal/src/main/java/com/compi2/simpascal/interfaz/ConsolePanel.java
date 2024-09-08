@@ -23,14 +23,15 @@ public class ConsolePanel extends javax.swing.JPanel {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextPane1 = new javax.swing.JTextPane();
 
-        setBackground(new java.awt.Color(81, 81, 81));
+        setBackground(new java.awt.Color(11, 11, 11));
         setBorder(new javax.swing.border.LineBorder(new java.awt.Color(18, 175, 177), 3, true));
 
         jScrollPane1.setBorder(null);
 
-        jTextPane1.setBackground(new java.awt.Color(81, 81, 81));
+        jTextPane1.setBackground(new java.awt.Color(11, 11, 11));
         jTextPane1.setBorder(null);
-        jTextPane1.setFont(new java.awt.Font("Inter", 0, 14)); // NOI18N
+        jTextPane1.setFont(new java.awt.Font("Inter", 1, 14)); // NOI18N
+        jTextPane1.setForeground(new java.awt.Color(255, 255, 255));
         jTextPane1.setEnabled(false);
         jTextPane1.setFocusable(false);
         jScrollPane1.setViewportView(jTextPane1);

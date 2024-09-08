@@ -8,96 +8,88 @@ package com.compi2.simpascal.sintactico;
 /** CUP generated class containing symbol constants. */
 public class sym {
   /* terminals */
-  public static final int REAL = 34;
-  public static final int BARRA = 68;
-  public static final int PACKED = 30;
-  public static final int TYPE = 41;
-  public static final int CONST = 15;
-  public static final int UNTIL = 42;
-  public static final int MAYOR = 57;
-  public static final int DIFERENTEA = 56;
-  public static final int INTEGER = 25;
+  public static final int REAL = 26;
+  public static final int BARRA = 63;
+  public static final int PACKED = 22;
+  public static final int TYPE = 33;
+  public static final int CONST = 6;
+  public static final int UNTIL = 34;
+  public static final int MAYOR = 48;
+  public static final int DIFERENTEA = 47;
+  public static final int INTEGER = 17;
   public static final int NOT = 71;
-  public static final int NIL = 27;
-  public static final int ARRAY = 11;
-  public static final int MULTI = 49;
-  public static final int VAR = 43;
-  public static final int THEN = 39;
-  public static final int GOTO = 22;
-  public static final int FLECHA = 67;
-  public static final int RECORD = 35;
-  public static final int MOD = 51;
-  public static final int COMA = 6;
-  public static final int ENTERO = 3;
-  public static final int R_LLAVE = 62;
-  public static final int IGUALA = 55;
-  public static final int IGUAL = 54;
-  public static final int WHILE = 44;
-  public static final int DECIMAL = 4;
-  public static final int CHAR = 14;
-  public static final int BOOLEAN = 13;
-  public static final int DOSPUNTOS = 9;
-  public static final int FOR = 20;
-  public static final int DIV = 50;
-  public static final int DOWNTO = 16;
-  public static final int READLN = 33;
-  public static final int ELSE = 17;
-  public static final int MENOS = 48;
-  public static final int MENOR = 58;
-  public static final int L_LLAVE = 61;
-  public static final int MAS = 47;
-  public static final int R_PAREN = 64;
-  public static final int PROCEDURE = 31;
+  public static final int NIL = 19;
+  public static final int ARRAY = 2;
+  public static final int MULTI = 41;
+  public static final int VAR = 35;
+  public static final int THEN = 31;
+  public static final int GOTO = 14;
+  public static final int FLECHA = 62;
+  public static final int RECORD = 27;
+  public static final int MOD = 43;
+  public static final int COMA = 52;
+  public static final int ENTERO = 65;
+  public static final int R_LLAVE = 57;
+  public static final int IGUALA = 46;
+  public static final int WHILE = 36;
+  public static final int DECIMAL = 66;
+  public static final int CHAR = 5;
+  public static final int BOOLEAN = 4;
+  public static final int DOSPUNTOS = 55;
+  public static final int DO = 8;
+  public static final int FOR = 12;
+  public static final int DIV = 42;
+  public static final int DOWNTO = 7;
+  public static final int READLN = 25;
+  public static final int ELSE = 9;
+  public static final int MENOS = 40;
+  public static final int MENOR = 49;
+  public static final int L_LLAVE = 56;
+  public static final int MAS = 39;
+  public static final int R_PAREN = 59;
+  public static final int PROCEDURE = 23;
   public static final int EOF = 0;
-  public static final int PUNTO = 8;
-  public static final int FUNCTION = 21;
-  public static final int CARACTER = 10;
-  public static final int REPEAT = 36;
-  public static final int LABEL = 26;
-  public static final int MENORIGUAL = 60;
-  public static final int L_PAREN = 63;
-  public static final int IN = 24;
+  public static final int PUNTO = 54;
+  public static final int FUNCTION = 13;
+  public static final int CARACTER = 68;
+  public static final int REPEAT = 28;
+  public static final int LABEL = 18;
+  public static final int MENORIGUAL = 51;
+  public static final int L_PAREN = 58;
+  public static final int IN = 16;
   public static final int OR = 69;
-  public static final int SET = 37;
+  public static final int SET = 29;
   public static final int error = 1;
-  public static final int WRITELN = 46;
-  public static final int ON = 29;
-  public static final int R_CORCH = 66;
-  public static final int IF = 23;
-  public static final int ID = 5;
-  public static final int OF = 28;
-  public static final int END = 18;
-  public static final int UMENOS = 52;
-  public static final int FILE = 19;
-  public static final int PUNTOCOMA = 7;
-  public static final int ASIGNACION = 53;
-  public static final int BEGIN = 12;
-  public static final int CADENA = 2;
-  public static final int MAYORIGUAL = 59;
-  public static final int L_CORCH = 65;
-  public static final int STRING = 38;
-  public static final int PROGRAM = 32;
+  public static final int WRITELN = 38;
+  public static final int ON = 21;
+  public static final int R_CORCH = 61;
+  public static final int IF = 15;
+  public static final int ID = 67;
+  public static final int OF = 20;
+  public static final int END = 10;
+  public static final int UMENOS = 44;
+  public static final int FILE = 11;
+  public static final int PUNTOCOMA = 53;
+  public static final int ASIGNACION = 45;
+  public static final int BEGIN = 3;
+  public static final int CADENA = 64;
+  public static final int MAYORIGUAL = 50;
+  public static final int L_CORCH = 60;
+  public static final int STRING = 30;
+  public static final int PROGRAM = 24;
   public static final int AND = 70;
-  public static final int TO = 40;
-  public static final int WITH = 45;
+  public static final int TO = 32;
+  public static final int WITH = 37;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
-  "CADENA",
-  "ENTERO",
-  "DECIMAL",
-  "ID",
-  "COMA",
-  "PUNTOCOMA",
-  "PUNTO",
-  "DOSPUNTOS",
-  "CARACTER",
   "ARRAY",
   "BEGIN",
   "BOOLEAN",
   "CHAR",
   "CONST",
   "DOWNTO",
+  "DO",
   "ELSE",
   "END",
   "FILE",
@@ -135,13 +127,16 @@ public class sym {
   "MOD",
   "UMENOS",
   "ASIGNACION",
-  "IGUAL",
   "IGUALA",
   "DIFERENTEA",
   "MAYOR",
   "MENOR",
   "MAYORIGUAL",
   "MENORIGUAL",
+  "COMA",
+  "PUNTOCOMA",
+  "PUNTO",
+  "DOSPUNTOS",
   "L_LLAVE",
   "R_LLAVE",
   "L_PAREN",
@@ -150,6 +145,11 @@ public class sym {
   "R_CORCH",
   "FLECHA",
   "BARRA",
+  "CADENA",
+  "ENTERO",
+  "DECIMAL",
+  "ID",
+  "CARACTER",
   "OR",
   "AND",
   "NOT"

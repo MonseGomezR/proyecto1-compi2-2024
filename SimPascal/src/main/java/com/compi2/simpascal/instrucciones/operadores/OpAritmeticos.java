@@ -8,6 +8,7 @@ public enum OpAritmeticos {
     SUMA,
     RESTA,
     MULTIPLICACION,
+    MODULO,
     DIVISION,
     NEGACION
 }

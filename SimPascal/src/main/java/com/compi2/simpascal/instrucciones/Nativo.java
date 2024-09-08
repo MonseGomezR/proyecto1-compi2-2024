@@ -12,6 +12,7 @@ import com.compi2.simpascal.instrucciones.tipos.Tipo;
 public class Nativo extends Instruccion{
 
     public Object valor;
+    private String temp;
 
     public Nativo(Object valor, Tipo tipo, int linea, int col) {
         super(tipo, linea, col);
@@ -20,12 +21,13 @@ public class Nativo extends Instruccion{
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
+        temp = "nativo" + arbol.getContador();
         return this.valor;
     }
 
     @Override
-    public String generarast(Arbol arbol, String anterior) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public String generarast() {
+        return "";
     }
     
     private Object analizarValor(Tipo tipo, Object value) {
@@ -41,5 +43,10 @@ public class Nativo extends Instruccion{
                 .replace("\\t", "\t")
                 .replace("\\'", "'")
                 .replace("\\\\", "\\");
+    }
+
+    @Override
+    public String generarastCP(String padre) {
+        return temp + "[label =\"" + valor.toString() + "\"]\n" + padre + " -> " + temp + "\n";
     }
 }

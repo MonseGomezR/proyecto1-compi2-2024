@@ -1,7 +1,9 @@
 package com.compi2.simpascal.interfaz;
 
 import com.compi2.simpascal.instrucciones.Errores;
+import com.compi2.simpascal.instrucciones.Funcion;
 import com.compi2.simpascal.instrucciones.Instruccion;
+import com.compi2.simpascal.instrucciones.Procedimiento;
 import com.compi2.simpascal.instrucciones.simbolos.Arbol;
 import com.compi2.simpascal.instrucciones.simbolos.Tabla;
 import com.compi2.simpascal.lexico.Lexico;
@@ -9,7 +11,10 @@ import com.compi2.simpascal.sintactico.parser;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.StringReader;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,11 +27,14 @@ public class MFrame extends javax.swing.JFrame {
     Tabla tabla;
     LinkedList<Errores> errores;
     Arbol ast;
-    
+    Lexico s;
+    parser p;
+
     public MFrame() {
         initComponents();
         setBackground(new Color(0, 0, 0, 0));
         setLocationRelativeTo(null);
+        consolePanel2.jTextPane1.setForeground(Color.white);
     }
 
     @SuppressWarnings("unchecked")
@@ -93,32 +101,65 @@ public class MFrame extends javax.swing.JFrame {
         try {
             errores = new LinkedList<>();
             String texto = tabPanel2.textAreaPanel1.textArea.getText();
-            Lexico s = new Lexico(new BufferedReader(new StringReader(texto)));
-            parser p = new parser(s);
+            s = new Lexico(new BufferedReader(new StringReader(texto)));
+            p = new parser(s);
             var resultado = p.parse();
-            ast = new Arbol((LinkedList<Instruccion>) resultado.value);
-            tabla = new Tabla();
-            tabla.setNombre("GLOBAL");
-            ast.setConsola("");
-            ast.setTablaGlobal(tabla);
-            
-            for(var a : ast.getInstrucciones()) {
-                
-                var as = a.interpretar(ast, tabla);
-                if (as instanceof Errores e) {
-                    errores.add(e);
+            String astD = "digraph " + p.programName + "{\n";
+            if (resultado != null) {
+                ast = new Arbol((LinkedList<Instruccion>) resultado.value);
+                ast.setConsola("");
+                tabla = new Tabla();
+                tabla.setNombre("GLOBAL");
+                ast.setTablaGlobal(tabla);
+
+                for (var a : ast.getInstrucciones()) {
+                    if (a != null) {
+                        if (a instanceof Funcion f) {
+                            ast.addFunciones(f);
+                        } else if (a instanceof Procedimiento pr) {
+                            ast.addProcedimiento(pr);
+                        } else {
+                            var as = a.interpretar(ast, tabla);
+                            astD += a.generarast();
+                            if (as instanceof Errores e) {
+                                errores.add(e);
+                            }
+                        }
+
+                    }
+
                 }
             }
-            
+
             errores.addAll(s.listaErrores);
             errores.addAll(p.listaErrores);
-            
-            for (var i : errores) {
-                System.out.println(i);
+
+            String erroresText = "";
+            if (errores.isEmpty()) {
+                consolePanel2.jTextPane1.setText("No se encontraron errores en el archivo " + tabPanel2.actual.name + " analizado");
+            } else {
+                for (var i : errores) {
+                    System.out.println(i);
+                    erroresText += i + "\n";
+                }
+                consolePanel2.jTextPane1.setText(erroresText);
             }
 
+            String[] lineas = astD.split("\n");
+            Set<String> lineasUnicas = new LinkedHashSet<>(Arrays.asList(lineas));
+            var r = String.join("\n", lineasUnicas);
+
+            System.out.println(r + "\n}");
+
         } catch (Exception ex) {
-            Logger.getLogger(MFrame.class.getName()).log(Level.SEVERE, null, ex);
+            errores.addAll(s.listaErrores);
+            errores.addAll(p.listaErrores);
+            String erroresText = "";
+            for (var i : errores) {
+                System.out.println(i);
+                erroresText += i + "\n";
+            }
+            consolePanel2.jTextPane1.setText(erroresText);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 

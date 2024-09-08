@@ -9,11 +9,13 @@ import com.compi2.simpascal.instrucciones.tipos.*;
  *
  * @author mgome
  */
-public class Aritmetico extends Instruccion{
+public class Aritmetico extends Instruccion {
+
     private Instruccion opL;
     private Instruccion opR;
-    private OpAritmeticos operacion;
     private Instruccion opU;
+    private String ast, temp, temp2;
+    private final OpAritmeticos operacion;
 
     public Aritmetico(Instruccion opU, OpAritmeticos operacion, int linea, int columna) {
         super(new Tipo(Dato.ENTERO), linea, columna);
@@ -30,15 +32,20 @@ public class Aritmetico extends Instruccion{
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
+        ast = "";
+        temp = "aritmetico" + arbol.getContador();
+        temp2 = temp;
         Object izq = null, der = null, unico = null;
-        
+
         if (this.opU != null) {
             unico = this.opU.interpretar(arbol, tabla);
             if (unico instanceof Errores) {
                 return unico;
             }
+
+            ast += this.opU.generarastCP(temp);
         } else {
-            if(this.opL == null || this.opR == null) {
+            if (this.opL == null || this.opR == null) {
                 return new Errores("SINTACTICO", "Nulos", linea, columna);
             }
             izq = this.opL.interpretar(arbol, tabla);
@@ -49,6 +56,9 @@ public class Aritmetico extends Instruccion{
             if (der instanceof Errores) {
                 return der;
             }
+
+            ast += this.opL.generarastCP(temp);
+            ast += this.opR.generarastCP(temp);
         }
 
         return switch (operacion) {
@@ -71,13 +81,16 @@ public class Aritmetico extends Instruccion{
         var tipoL = this.opL.tipo.getDato();
         var tipoR = this.opR.tipo.getDato();
 
+        temp += "[label=\"+\"]";
+
         switch (tipoL) {
             case ENTERO -> {
                 switch (tipoR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.ENTERO);
                         Object resultado = (int) opL + (int) opR;
-                        System.out.println((int)opL + " + " + (int)opR + " = " + resultado.toString());
+                        System.out.println((int) opL + " + " + (int) opR + " = " + resultado.toString());
+
                         return (int) opL + (int) opR;
                     }
                     case DECIMAL -> {
@@ -180,6 +193,7 @@ public class Aritmetico extends Instruccion{
         var tipoL = this.opL.tipo.getDato();
         var tipoR = this.opR.tipo.getDato();
 
+        temp += "[label=\"-\"]";
         switch (tipoL) {
             case ENTERO -> {
                 switch (tipoR) {
@@ -245,6 +259,7 @@ public class Aritmetico extends Instruccion{
         var tipoL = this.opL.tipo.getDato();
         var tipoR = this.opR.tipo.getDato();
 
+        temp += "[label=\"*\"]";
         switch (tipoL) {
             case ENTERO -> {
                 switch (tipoR) {
@@ -389,6 +404,8 @@ public class Aritmetico extends Instruccion{
 
     public Object negacion(Object unico) {
         var tipoU = this.opU.tipo.getDato();
+        
+        temp += "[label=\"-\"]";
         switch (tipoU) {
             case ENTERO -> {
                 this.tipo.setTipo(Dato.ENTERO);
@@ -403,29 +420,14 @@ public class Aritmetico extends Instruccion{
             }
         }
     }
-    
+
     @Override
-    public String generarast(Arbol arbol, String anterior) {
-        // neg y exp sig exp
-        if (this.operacion == OpAritmeticos.NEGACION) {
-            return "";
-        }
+    public String generarast() {
+        return "";
+    }
 
-        //exp op exp
-        String nodoExp1 = "n" + arbol.getContador();
-        String nodoOp = "n" + arbol.getContador();
-        String nodoExp2 = "n" + arbol.getContador();
-
-        String resultado = anterior + " -> " + nodoExp1 + ";\n";
-        resultado += anterior + " ->" + nodoOp + ";\n";
-        resultado += anterior + " ->" + nodoExp2 + ";\n";
-
-        resultado += nodoExp1 + "[label=\"EXP\"];\n";
-        resultado += nodoOp + "[label=\"+\"];\n";
-        resultado += nodoExp2 + "[label=\"EXP\"];\n";
-        resultado += this.opL.generarast(arbol, nodoExp1);
-        resultado += this.opR.generarast(arbol, nodoExp2);
-        return resultado;
-
+    @Override
+    public String generarastCP(String padre) {
+        return temp + "\n" + padre + " -> " + temp2 + "\n" + ast;
     }
 }
