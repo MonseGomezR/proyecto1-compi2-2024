@@ -36,7 +36,7 @@ parser code {:
 
     public void unrecovered_syntax_error (Symbol s) {
         // Obtener los IDs de los tokens esperados
-        int[] expectedTokens = expected_token_ids();
+        List<Integer> expectedTokens = expected_token_ids();
 
         // Construir una lista de los nombres de los tokens esperados
         StringBuilder expectedSymbols = new StringBuilder();
@@ -219,7 +219,7 @@ i_declaracion ::= dec_const:a dec_var:b         {:
                                                     RESULT = new LinkedList<>(); 
                                                     RESULT.add(b); 
                                                 :}
-               | /* vacío */                    {: 
+               |                                {: 
                                                     RESULT = new LinkedList<>(); 
                                                 :}
 ;
@@ -284,7 +284,7 @@ i_funciones ::= i_funciones:a funcion:b         {:
                                                     RESULT.add(a); 
                                                 :}
 ;
-funcion ::= FUNCTION:f ID:id L_PAREN parametros:p R_PAREN DOSPUNTOS tipos:t   
+funcion ::= FUNCTION:f ID:id L_PAREN parametros:p R_PAREN DOSPUNTOS tipos:t PUNTOCOMA  
             i_declaracion:dec   
             i_instrucciones:i PUNTOCOMA {:  RESULT = new Funcion(id, t, p, dec, i, fleft, fright);    :}
 ;
@@ -305,7 +305,7 @@ i_procedimientos ::= i_procedimientos:a procedimiento:b             {:
                                                                         RESULT.add(a);  
                                                                     :}
 ;
-procedimiento ::= PROCEDURE:p ID:id L_PAREN parametros:pr R_PAREN
+procedimiento ::= PROCEDURE:p ID:id L_PAREN parametros:pr R_PAREN PUNTOCOMA
                   i_declaracion:dec   
                   i_instrucciones:i  PUNTOCOMA                               {:  RESULT = new Procedimiento(id, pr, dec, i, new Tipo(Dato.VOID), pleft, pright); :}
 

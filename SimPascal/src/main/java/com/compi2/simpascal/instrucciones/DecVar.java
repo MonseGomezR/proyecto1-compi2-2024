@@ -13,8 +13,6 @@ public class DecVar extends Instruccion {
 
     private final LinkedList<Simbolo> variables;
     private Simbolo variableU;
-    private String ast = "";
-    private String nodeName = "";
 
     public DecVar(LinkedList<Simbolo> variables, int linea, int col) {
         super(new Tipo(Dato.VOID), linea, col);
@@ -30,14 +28,11 @@ public class DecVar extends Instruccion {
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
         int contador = 0;
-        
+
         if (variableU == null) {
-            nodeName = "var_" + arbol.getContador();
             if (variables.isEmpty()) {
                 return new Errores("SEMANTICO", "Declarado bloque de variables, pero vacío", this.linea, this.columna);
             }
-
-            
 
             for (var variable : variables) {
                 if (variable.getValor() != null && variable.getValor() instanceof int[] rango) {
@@ -61,25 +56,9 @@ public class DecVar extends Instruccion {
                     return new Errores("SEMANTICO", "Variable ya existente", this.linea + contador, this.columna);
                 }
 
-                contador++;
-                ast += nodeName + "[label=var]\n"
-                        + "dec_var" + contador + "[label=declaracion]\n"
-                        + "dec_var_id" + contador + "[label=ID]\n"
-                        + "dec_var_s" + contador + "[label=\":\"]\n"
-                        + "dec_var_t" + contador + "[label=tipo]\n"
-                        + "dec_var_data_name" + contador + "[label=" + variable.getTipo().getDato().toString() + "]\n"
-                        + "dec_var_id_name" + contador + "[label=" + variable.getId() + "]\n";
-
-                ast += nodeName + " -> dec_var" + contador + "\n"
-                        + "dec_var" + contador + " -> dec_var_id" + contador + "\n"
-                        + "dec_var" + contador + " -> dec_var_s" + contador + "\n"
-                        + "dec_var" + contador + " -> dec_var_t" + contador + "\n"
-                        + "dec_var_t" + contador + " -> dec_var_data_name" + contador + "\n"
-                        + "dec_var_id" + contador + " -> dec_var_id_name" + contador + "\n\n";
             }
             return null;
         } else {
-            nodeName = "var_" + arbol.getContador();
             if (variableU.getValor() != null && variableU.getValor() instanceof int[] rango) {
                 switch (variableU.getTipo().getDato()) {
                     case ENTERO ->
@@ -101,34 +80,111 @@ public class DecVar extends Instruccion {
                 return new Errores("SEMANTICO", "Variable ya existente", this.linea + contador, this.columna);
             }
 
-            contador++;
-            ast += nodeName + "[label=var]\n"
-                    + "dec_var" + contador + "[label=declaracion]\n"
-                    + "dec_var_id" + contador + "[label=ID]\n"
-                    + "dec_var_s" + contador + "[label=\":\"]\n"
-                    + "dec_var_t" + contador + "[label=tipo]\n"
-                    + "dec_var_data_name" + contador + "[label=" + variableU.getTipo().getDato().toString() + "]\n"
-                    + "dec_var_id_name" + contador + "[label=" + variableU.getId() + "]\n";
-
-            ast += nodeName + " -> dec_var" + contador + "\n"
-                    + "dec_var" + contador + " -> dec_var_id" + contador + "\n"
-                    + "dec_var" + contador + " -> dec_var_s" + contador + "\n"
-                    + "dec_var" + contador + " -> dec_var_t" + contador + "\n"
-                    + "dec_var_t" + contador + " -> dec_var_data_name" + contador + "\n"
-                    + "dec_var_id" + contador + " -> dec_var_id_name" + contador + "\n\n";
             return null;
         }
 
     }
 
     @Override
-    public String generarast() {
-        return "start -> declaraciones\ndeclaraciones -> " + nodeName + "\n" + ast;
+    public String generarast(Arbol arbol) {
+        String nodeName = "variables_" + arbol.getContador();
+        String labels = nodeName + "[label=\"variables\"]\n";
+        String ast = "start -> declaraciones\ndeclaraciones -> " + nodeName + "\n";
+        String tipoV;
+        String id;
+        int i = 0;
+
+        if (variableU != null) {
+            tipoV = variableU.getTipo().getDato().toString();
+            id = variableU.getId();
+            labels += nodeName + "U_dec[label=\"variable\"]\n"
+                    + nodeName + "U_dec_id[label=\"ID\"]\n"
+                    + nodeName + "U_dec_symbol[label=\":\"]\n"
+                    + nodeName + "U_dec_type[label=\"TIPO\"]\n"
+                    + nodeName + "U_dec_value[label=\"" + tipoV + "\"]\n"
+                    + nodeName + "U_dec_name[label=\"" + id + "\"]\n\n";
+            ast += nodeName + " -> " + nodeName + "_dec\n"
+                    + nodeName + "U_dec -> " + nodeName + "U_dec_id\n"
+                    + nodeName + "U_dec -> " + nodeName + "U_dec_symbol\n"
+                    + nodeName + "U_dec -> " + nodeName + "U_dec_type\n"
+                    + nodeName + "U_dec_type -> " + nodeName + "U_dec_value\n"
+                    + nodeName + "U_dec_id -> " + nodeName + "U_dec_name\n";
+        } else {
+            for (Simbolo variable : variables) {
+                tipoV = variable.getTipo().getDato().toString();
+                id = variable.getId();
+                i++;
+
+                labels += nodeName + "_dec" + i + "[label=\"variable\"]\n"
+                        + nodeName + "_dec" + i + "_id[label=\"ID\"]\n"
+                        + nodeName + "_dec" + i + "_symbol[label=\":\"]\n"
+                        + nodeName + "_dec" + i + "_type[label=\"TIPO\"]\n"
+                        + nodeName + "_dec" + i + "_value[label=\"" + tipoV + "\"]\n"
+                        + nodeName + "_dec" + i + "_name[label=\"" + id + "\"]\n\n";
+                ast += nodeName + " -> " + nodeName + "_dec" + i + "\n"
+                        + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_id\n"
+                        + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_symbol\n"
+                        + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_type\n"
+                        + nodeName + "_dec" + i + "_type -> " + nodeName + "_dec" + i + "_value\n"
+                        + nodeName + "_dec" + i + "_id -> " + nodeName + "_dec" + i + "_name\n";
+            }
+
+        }
+
+        return labels + ast;
     }
 
     @Override
-    public String generarastCP(String padre) {
-        return padre + " -> " + nodeName + "\n" + ast;
+    public String generarastCP(String padre, Arbol arbol) {
+        String nodeName = "variables_" + arbol.getContador();
+        String labels = nodeName + "[label=\"variables\"]\n"
+                + padre + "declaraciones[label=declaraciones]\n";
+        String ast = padre + " -> " + padre + "declaraciones\n" + padre + "declaraciones -> " + nodeName + "\n";
+        String tipoV;
+        String id;
+        int i = 0;
+
+        if (variableU != null) {
+            tipoV = variableU.getTipo().getDato().toString();
+            id = variableU.getId();
+            labels += nodeName + "U_dec[label=\"variable\"]\n"
+                    + nodeName + "U_dec_id[label=\"ID\"]\n"
+                    + nodeName + "U_dec_symbol[label=\":\"]\n"
+                    + nodeName + "U_dec_type[label=\"TIPO\"]\n"
+                    + nodeName + "U_dec_value[label=\"" + tipoV + "\"]\n"
+                    + nodeName + "U_dec_name[label=\"" + id + "\"]\n\n";
+            ast += nodeName + " -> " + nodeName + "_dec\n"
+                    + nodeName + "U_dec -> " + nodeName + "U_dec_id\n"
+                    + nodeName + "U_dec -> " + nodeName + "U_dec_symbol\n"
+                    + nodeName + "U_dec -> " + nodeName + "U_dec_type\n"
+                    + nodeName + "U_dec_type -> " + nodeName + "U_dec_value\n"
+                    + nodeName + "U_dec_id -> " + nodeName + "U_dec_name\n";
+        }
+
+        for (Simbolo variable : variables) {
+            tipoV = variable.getTipo().getDato().toString();
+            id = variable.getId();
+            i++;
+
+            labels += nodeName + "_dec" + i + "[label=\"variable\"]\n"
+                    + nodeName + "_dec" + i + "_id[label=\"ID\"]\n"
+                    + nodeName + "_dec" + i + "_symbol[label=\":\"]\n"
+                    + nodeName + "_dec" + i + "_type[label=\"TIPO\"]\n"
+                    + nodeName + "_dec" + i + "_value[label=\"" + tipoV + "\"]\n"
+                    + nodeName + "_dec" + i + "_name[label=\"" + id + "\"]\n\n";
+            ast += nodeName + " -> " + nodeName + "_dec" + i + "\n"
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_id\n"
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_symbol\n"
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_type\n"
+                    + nodeName + "_dec" + i + "_type -> " + nodeName + "_dec" + i + "_value\n"
+                    + nodeName + "_dec" + i + "_id -> " + nodeName + "_dec" + i + "_name\n";
+        }
+        return labels + ast;
+    }
+
+    @Override
+    public String generarAA(String padre, Arbol arbol, Tabla tabla) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
 }

@@ -10,20 +10,20 @@ import com.compi2.simpascal.instrucciones.tipos.Tipo;
  *
  * @author mgome
  */
-public class Logico extends Instruccion{
+public class Logico extends Instruccion {
 
     private Instruccion cL;
     private Instruccion cR;
     private Instruccion cU;
-    private OpLogicos operacion;
-    
+    private final OpLogicos operacion;
+
     public Logico(Instruccion cL, Instruccion cR, OpLogicos operacion, int linea, int col) {
         super(new Tipo(Dato.BOOLEANO), linea, col);
         this.cL = cL;
         this.cR = cR;
         this.operacion = operacion;
     }
-    
+
     public Logico(Instruccion cU, OpLogicos operacion, int linea, int col) {
         super(new Tipo(Dato.BOOLEANO), linea, col);
         this.operacion = operacion;
@@ -32,7 +32,7 @@ public class Logico extends Instruccion{
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
-        Object conIzq = null, conDer= null, unica = null;
+        Object conIzq = null, conDer = null, unica = null;
         if (this.cU != null) {
             unica = this.cU.interpretar(arbol, tabla);
             if (unica instanceof Errores) {
@@ -64,13 +64,36 @@ public class Logico extends Instruccion{
     }
 
     @Override
-    public String generarast() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public String generarast(Arbol arbol) {
+        return "";
     }
 
     @Override
-    public String generarastCP(String padre) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public String generarastCP(String padre, Arbol arbol) {
+        String nodeName = "op_logic" + arbol.getContador();
+        String labels = nodeName + "[label=\"" + operacion.name() + "\"]\n";
+        String ast = padre + " -> " + nodeName + "\n";
+        if (cU == null) {
+            ast += this.cL.generarastCP(nodeName, arbol);
+            ast += this.cR.generarastCP(nodeName, arbol);
+        } else {
+            ast += this.cU.generarastCP(nodeName, arbol);
+        }
+        return labels + ast;
     }
-    
+
+    @Override
+    public String generarAA(String padre, Arbol arbol, Tabla tabla) {
+        String aa = "";
+        if (cU != null) {
+            aa += cU.generarAA(padre, arbol, tabla);
+        } else {
+            aa += cL.generarAA(padre, arbol, tabla);
+            aa += cR.generarAA(padre, arbol, tabla);
+
+        }
+
+        return aa;
+    }
+
 }

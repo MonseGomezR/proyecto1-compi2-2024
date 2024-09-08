@@ -14,8 +14,6 @@ import java.util.LinkedList;
 public class DecConst extends Instruccion {
 
     private final LinkedList<Simbolo> constantes;
-    private String ast = "";
-    private String nodeName = "";
 
     public DecConst(LinkedList<Simbolo> constantes, int linea, int col) {
         super(new Tipo(Dato.VOID), linea, col);
@@ -27,7 +25,6 @@ public class DecConst extends Instruccion {
         if (constantes.isEmpty()) {
             return new Errores("SEMANTICO", "Declarado bloque de constantes, pero vacío", this.linea, this.columna);
         }
-        nodeName = "const_" + arbol.getContador();
 
         int contador = 0;
         for (Simbolo constante : constantes) {
@@ -49,34 +46,84 @@ public class DecConst extends Instruccion {
             if (!creacion) {
                 return new Errores("SEMANTICO", "Constante ya existente", this.linea + contador, this.columna);
             }
-            contador++;
-            ast += nodeName + "[label=const]\n"
-                    + "dec_const" + contador + "[label=declaracion]\n"
-                    + "dec_const_id" + contador + "[label=ID]\n"
-                    + "dec_const_s" + contador + "[label=\"=\"]\n"
-                    + "dec_const_t" + contador + "[label=valor]\n"
-                    + "dec_const_data" + contador + "[label=\"" + constante.getValor().toString() + "\"]\n"
-                    + "dec_const_id_name" + contador + "[label=" + constante.getId() + "]\n";
-            ast += nodeName + " -> dec_const" + contador + "\n"
-                    + "dec_const" + contador + " -> dec_const_id" + contador + "\n"
-                    + "dec_const" + contador + " -> dec_const_s" + contador + "\n"
-                    + "dec_const" + contador + " -> dec_const_t" + contador + "\n"
-                    + "dec_const_t" + contador + " -> dec_const_data" + contador + "\n"
-                    + "dec_const_id" + contador + " -> dec_const_id_name" + contador + "\n\n";
         }
 
         return null;
     }
 
     @Override
-    public String generarast() {
+    public String generarast(Arbol arbol) {
+        String nodeName = "constantes" + arbol.getContador();
+        String labels = nodeName + "[label=\"constantes\"]\n";
+        String ast = "start -> declaraciones\ndeclaraciones -> " + nodeName + "\n";
+        String valorC ;
+        String id;
+        int i = 0;
 
-        return "start -> declaraciones\ndeclaraciones -> " + nodeName + "\n" + ast;
+        for (Simbolo constante : constantes) {
+            id = constante.getId();
+            var valor = constante.getValor();
+            if(valor instanceof Nativo nat) {
+                valorC = nat.valor.toString();
+            }else {
+                valorC = constante.getValor().toString();
+            }
+            i++;
+
+            labels += nodeName + "_dec" + i + "[label=\"constante\"]\n"
+                    + nodeName + "_dec" + i + "_id[label=\"ID\"]\n"
+                    + nodeName + "_dec" + i + "_symbol[label=\"=\"]\n"
+                    + nodeName + "_dec" + i + "_value[label=\"VALOR\"]\n"
+                    + nodeName + "_dec" + i + "_valueV[label=\"" + valorC + "\"]\n"
+                    + nodeName + "_dec" + i + "_name[label=\"" + id + "\"]\n\n";
+            ast += nodeName + " -> " + nodeName + "_dec" + i + "\n"
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_id\n"
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_symbol\n"
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_value\n"
+                    + nodeName + "_dec" + i + "_value -> " + nodeName + "_dec" + i + "_valueV\n"
+                    + nodeName + "_dec" + i + "_id -> " + nodeName + "_dec" + i + "_name\n";
+        }
+        return labels + ast;
     }
 
     @Override
-    public String generarastCP(String padre) {
+    public String generarastCP(String padre, Arbol arbol) {
+        String nodeName = "constantes" + arbol.getContador();
+        String labels = nodeName + "[label=\"constantes\"]\n"
+                + padre + "declaraciones[label=declaraciones]\n";
+        String ast = padre + " -> " + padre + "declaraciones\n" + padre + "declaraciones -> " + nodeName + "\n";
+        String valorC;
+        String id;
+        int i = 0;
 
-        return padre + " -> " + nodeName + "\n" + ast;
+        for (Simbolo constante : constantes) {
+            id = constante.getId();
+            var valor = constante.getValor();
+            if(valor instanceof Nativo nat) {
+                valorC = nat.valor.toString();
+            }else {
+                valorC = constante.getValor().toString();
+            }
+            i++;
+
+            labels += nodeName + "_dec" + i + "[label=\"constante\"]\n"
+                    + nodeName + "_dec" + i + "_id[label=\"ID\"]\n"
+                    + nodeName + "_dec" + i + "_symbol[label=\"=\"]\n"
+                    + nodeName + "_dec" + i + "_value[label=\"VALOR\"]\n"
+                    + nodeName + "_dec" + i + "_valueV[label=\"" + valorC + "\"]\n"
+                    + nodeName + "_dec" + i + "_name[label=\"" + id + "\"]\n\n";
+            ast += nodeName + " -> " + nodeName + "_dec" + i + "\n"
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_id\n"
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_symbol\n"
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_value\n"
+                    + nodeName + "_dec" + i + "_value -> " + nodeName + "_dec" + i + "_valueV\n"
+                    + nodeName + "_dec" + i + "_id -> " + nodeName + "_dec" + i + "_name\n";
+        }
+        return labels + ast;
+    }
+
+    @Override
+    public String generarAA(String padre, Arbol arbol, Tabla tabla) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

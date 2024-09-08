@@ -12,8 +12,6 @@ import com.compi2.simpascal.instrucciones.tipos.Tipo;
 public class Acceso extends Instruccion {
 
     private final String id;
-    private String ast;
-    private String nodeName;
     private final Instruccion index;
 
     public Acceso(String id, int linea, int columna) {
@@ -24,7 +22,6 @@ public class Acceso extends Instruccion {
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
-        ast = "";
         if (index == null) {
             var valor = tabla.getVariable(this.id);
             if (valor == null) {
@@ -32,19 +29,10 @@ public class Acceso extends Instruccion {
             }
             this.tipo.setTipo(valor.getTipo().getDato());
 
-            nodeName = "acceso" + arbol.getContador();
-
             if (valor.getValor() instanceof char[] valorN) {
                 String temp = new String(valorN);
-                ast += nodeName + " -> acc" + valor.getId() + "\nacc" + valor.getId() + " -> \"" + temp + "\"\n\n";
                 return temp;
             }
-
-            ast += nodeName + "_" + valor.getId() + "[label =\"id:" + valor.getId() + "\"]\n";
-            ast += nodeName + "_valor[label=\"" + valor.getValor() + "\"]\n";
-
-            ast += nodeName + " -> " + nodeName + "_" + valor.getId() + "\n";
-            ast += nodeName + "_" + valor.getId() + " -> " + nodeName + "_valor\n\n";
 
             return valor.getValor();
         }
@@ -52,18 +40,27 @@ public class Acceso extends Instruccion {
     }
 
     @Override
-    public String generarast() {
+    public String generarast(Arbol arbol) {
         return "";
     }
 
     @Override
-    public String generarastCP(String padre) {
-        if (!"".equals(nodeName)) {
-            return nodeName + "[label = acceso]\n" + padre + " -> " + nodeName + "\n" + ast;
-        } else {
-            return "";
-        }
+    public String generarastCP(String padre, Arbol arbol) {
 
+        String nodeName = "acceso" + arbol.getContador();
+        String labels = nodeName + "[label=\"acceso\"]\n"
+                + nodeName + "_" + this.id + "[label =\"id:" + this.id + "\"]\n";
+        
+        String ast = padre + " -> " + nodeName + "\n"
+                + nodeName + " -> " + nodeName + "_" + this.id  + "\n";
+
+        return labels + ast;
+
+    }
+
+    @Override
+    public String generarAA(String padre, Arbol arbol, Tabla tabla) {
+        return "";
     }
 
 }

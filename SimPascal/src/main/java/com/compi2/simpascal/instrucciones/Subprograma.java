@@ -24,8 +24,9 @@ public abstract class Subprograma extends Instruccion {
     public abstract Object interpretar(Arbol arbol, Tabla tabla);
 
     @Override
-    public abstract String generarast();
+    public abstract String generarast(Arbol arbol);
 
     @Override
-    public abstract String generarastCP(String padre);
+    public abstract String generarastCP(String padre, Arbol arbol);
+   
 }

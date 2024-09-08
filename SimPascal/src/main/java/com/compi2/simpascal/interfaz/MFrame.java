@@ -3,6 +3,7 @@ package com.compi2.simpascal.interfaz;
 import com.compi2.simpascal.instrucciones.Errores;
 import com.compi2.simpascal.instrucciones.Funcion;
 import com.compi2.simpascal.instrucciones.Instruccion;
+import com.compi2.simpascal.instrucciones.LlamadaFun;
 import com.compi2.simpascal.instrucciones.Procedimiento;
 import com.compi2.simpascal.instrucciones.simbolos.Arbol;
 import com.compi2.simpascal.instrucciones.simbolos.Tabla;
@@ -15,8 +16,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -105,6 +104,7 @@ public class MFrame extends javax.swing.JFrame {
             p = new parser(s);
             var resultado = p.parse();
             String astD = "digraph " + p.programName + "{\n";
+            String AA = "digraph " + p.programName + "AA{\n";
             if (resultado != null) {
                 ast = new Arbol((LinkedList<Instruccion>) resultado.value);
                 ast.setConsola("");
@@ -120,11 +120,16 @@ public class MFrame extends javax.swing.JFrame {
                             ast.addProcedimiento(pr);
                         } else {
                             var as = a.interpretar(ast, tabla);
-                            astD += a.generarast();
+
                             if (as instanceof Errores e) {
                                 errores.add(e);
                             }
+                            AA += a.generarAA("start", ast, tabla);
                         }
+
+                        
+
+                        astD += a.generarast(ast);
 
                     }
 
@@ -149,7 +154,13 @@ public class MFrame extends javax.swing.JFrame {
             Set<String> lineasUnicas = new LinkedHashSet<>(Arrays.asList(lineas));
             var r = String.join("\n", lineasUnicas);
 
-            System.out.println(r + "\n}");
+            System.out.println(r + "\n\n\n}");
+
+            String[] lineas2 = AA.split("\n");
+            Set<String> lineasUnicas2 = new LinkedHashSet<>(Arrays.asList(lineas2));
+            var r2 = String.join("\n", lineasUnicas2);
+
+            System.out.println(r2 + "\n}");
 
         } catch (Exception ex) {
             errores.addAll(s.listaErrores);

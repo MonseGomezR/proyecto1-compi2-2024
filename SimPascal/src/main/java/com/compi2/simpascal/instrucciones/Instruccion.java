@@ -22,7 +22,8 @@ public abstract class Instruccion {
     }
 
     public abstract Object interpretar(Arbol arbol, Tabla tabla);
-    public abstract String generarast();
-    public abstract String generarastCP(String padre);
+    public abstract String generarast(Arbol arbol);
+    public abstract String generarastCP(String padre, Arbol arbol);
+    public abstract String generarAA(String padre, Arbol arbol, Tabla tabla);
 
 }

@@ -13,20 +13,16 @@ import java.util.LinkedList;
  */
 public class Funcion extends Subprograma {
 
-    private String nodeName;
     private Simbolo retorno;
     private final Tipo tipoRetorno;
 
     public Funcion(String nombre, Tipo tipoRetorno, LinkedList<HashMap> parametros, LinkedList<Instruccion> declaraciones, LinkedList<Instruccion> cuerpo, int linea, int columna) {
         super(nombre, parametros, declaraciones, cuerpo, tipoRetorno, linea, columna);
-        nodeName = "";
         this.tipoRetorno = tipoRetorno;
     }
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
-        nodeName = "funcion_" + nombre + "_" + arbol.getContador();
-
         if (!declaraciones.isEmpty()) {
             for (Instruccion declaracion : declaraciones) {
                 declaracion.interpretar(arbol, tabla);
@@ -58,24 +54,55 @@ public class Funcion extends Subprograma {
     }
 
     @Override
-    public String generarast() {
-        String ast = "start -> funciones\nfunciones -> funciones -> " + nodeName + "\n";
+    public String generarast(Arbol arbol) {
+        String nodeName = "funcion_" + nombre;
+        String labels = nodeName + "[label=\"function " + nombre + "\"]\n"
+                + nodeName + "_parametros[label=parametros]\n"
+                + nodeName + "_declaraciones[label=declaraciones]\n"
+                + nodeName + "_statements[label=statements]\n"
+                + nodeName + "_tipo[label=returnType]\n"
+                + nodeName + "_tipoV[label=\"" + this.tipoRetorno.getDato().name() + "\"]\n";
+
+        String ast = "start -> funciones\nfunciones -> " + nodeName + "\n"
+                + nodeName + " -> " + nodeName + "_parametros\n"
+                + nodeName + " -> " + nodeName + "_declaraciones\n"
+                + nodeName + " -> " + nodeName + "_statements\n"
+                + nodeName + " -> " + nodeName + "_tipo\n"
+                + nodeName + "_tipo -> " + nodeName + "_tipoV\n";
+
+        for (int i = 0; i < parametros.size(); i++) {
+            var idP = parametros.get(i).get("id");
+            var tipoP = (Tipo) parametros.get(i).get("tipo");
+
+            labels += nodeName + "_parametro" + i + "[label=parametro]\n"
+                    + nodeName + "_parametro" + i + "_id[label=\"" + idP.toString() + "\"]\n"
+                    + nodeName + "_parametro" + i + "_tipo[label=\"" + tipoP.getDato().name() + "\"]\n";
+            ast += nodeName + "_parametros -> " + nodeName + "_parametro" + i + "\n"
+                    + nodeName + "_parametro" + i + " -> " + nodeName + "_parametro" + i + "_id\n"
+                    + nodeName + "_parametro" + i + " -> " + nodeName + "_parametro" + i + "_tipo\n";
+        }
+
         for (Instruccion declaracion : declaraciones) {
-            ast += declaracion.generarastCP(nodeName);
-
+            ast += declaracion.generarastCP(nodeName + "_declaraciones", arbol);
         }
+
         for (Instruccion instruccion : statements) {
-            ast += instruccion.generarastCP(nodeName);
-
+            ast += instruccion.generarastCP(nodeName + "_statements", arbol);
         }
-        ast += "return_" + nodeName + "[label=return]\n"
-                + "retorno_" + nodeName + "_" + retorno.toString() + "[label=\"" + retorno.toString() + "\"]\n";
-        ast += "return_" + nodeName + " -> retorno_" + nodeName + "_" + retorno.toString();
-        return ast;
+        return labels + ast;
     }
 
     @Override
-    public String generarastCP(String padre) {
+    public String generarastCP(String padre, Arbol arbol) {
         return "";
+    }
+
+    @Override
+    public String generarAA(String padre, Arbol arbol, Tabla tabla) {
+        String aa = "";
+        for (Instruccion instruccion : statements) {
+            aa += instruccion.generarAA(padre, arbol, tabla);
+        }
+        return aa;
     }
 }

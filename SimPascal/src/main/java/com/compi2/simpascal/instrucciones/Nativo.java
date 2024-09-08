@@ -9,10 +9,9 @@ import com.compi2.simpascal.instrucciones.tipos.Tipo;
  *
  * @author mgome
  */
-public class Nativo extends Instruccion{
+public class Nativo extends Instruccion {
 
     public Object valor;
-    private String temp;
 
     public Nativo(Object valor, Tipo tipo, int linea, int col) {
         super(tipo, linea, col);
@@ -21,22 +20,16 @@ public class Nativo extends Instruccion{
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
-        temp = "nativo" + arbol.getContador();
         return this.valor;
     }
 
-    @Override
-    public String generarast() {
-        return "";
-    }
-    
     private Object analizarValor(Tipo tipo, Object value) {
-        if (tipo.getDato()== Dato.CADENA && value instanceof String) {
+        if (tipo.getDato() == Dato.CADENA && value instanceof String) {
             return interpretEscapeSequences((String) value);
         }
         return value;
     }
-    
+
     private String interpretEscapeSequences(String input) {
         return input.replace("\\n", "\n")
                 .replace("\\\"", "\"")
@@ -44,9 +37,21 @@ public class Nativo extends Instruccion{
                 .replace("\\'", "'")
                 .replace("\\\\", "\\");
     }
+    
+    @Override
+    public String generarast(Arbol arbol) {
+        return "";
+    }
 
     @Override
-    public String generarastCP(String padre) {
-        return temp + "[label =\"" + valor.toString() + "\"]\n" + padre + " -> " + temp + "\n";
+    public String generarastCP(String padre, Arbol arbol) {
+        String nodeName = "nativo" + arbol.getContador();
+        return nodeName + "[label =\"" + valor.toString() + "\"]\n"
+                + padre + " -> " + nodeName + "\n";
+    }
+
+    @Override
+    public String generarAA(String padre, Arbol arbol, Tabla tabla) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

@@ -14,7 +14,6 @@ public class AsignacionVar extends Instruccion {
     public String id;
     public Instruccion exp;
     private Instruccion index;
-    private String ast, temp;
 
     public AsignacionVar(String id, Instruccion exp, int linea, int col) {
         super(new Tipo(Dato.VOID), linea, col);
@@ -31,7 +30,6 @@ public class AsignacionVar extends Instruccion {
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
-        temp = "asignacion" + arbol.getContador();
         var variable = tabla.getVariable(id);
 
         if (variable == null) {
@@ -62,15 +60,6 @@ public class AsignacionVar extends Instruccion {
                         }
                     }
                     variable.setValor(variableVector);
-                    ast = temp + "_id_" + variable.getId() + "[label=ID]\n"
-                            + temp + "_simbolo_" + variable.getId() + "[label=\":=\"]\n"
-                            + temp + "_vid_" + variable.getId() + "[label=\"" + variable.getId() + "\"]\n"
-                            + temp + "_valor_" + variable.getId() + "[label=\"valor\"]\n";
-                    ast += temp + " -> " + temp + "_id_" + variable.getId() + "\n"
-                            + temp + "_id_" + variable.getId() + " -> " + temp + "_vid_" + variable.getId() + "\n"
-                            + temp + " -> " + temp + "_simbolo_" + variable.getId() + "\n"
-                            + temp + " -> " + temp + "_valor_" + variable.getId() + "\n";
-                    ast += exp.generarastCP(temp + "_valor_" + variable.getId());
                     return null;
                 } else {
                     if (tipoVariable != tipoNewValor) {
@@ -90,26 +79,50 @@ public class AsignacionVar extends Instruccion {
                 }
             }
             variable.setValor(newValor);
-            ast = temp + "_id_" + variable.getId() + "[label=ID]\n"
-                    + temp + "_simbolo_" + variable.getId() + "[label=\":=\"]\n"
-                    + temp + "_vid_" + variable.getId() + "[label=\"" + variable.getId() + "\"]\n"
-                    + temp + "_valor_" + variable.getId() + "[label=\"valor\"]\n";
-            ast += temp + " -> " + temp + "_id_" + variable.getId() + "\n"
-                    + temp + "_id_" + variable.getId() + " -> " + temp + "_vid_" + variable.getId() + "\n"
-                    + temp + " -> " + temp + "_simbolo_" + variable.getId() + "\n"
-                    + temp + " -> " + temp + "_valor_" + variable.getId() + "\n";
-            ast += exp.generarastCP(temp + "_valor_" + variable.getId());
             return null;
         }
     }
 
     @Override
-    public String generarast() {
-        return "start -> statements\n" + temp + "[label=asignacion]\nstatements -> " + temp + "\n" + ast;
+    public String generarast(Arbol arbol) {
+        String nodeName = "asignacion" + arbol.getContador();
+        String labels = nodeName + "[label=\"asignacion\"]\n"
+                + nodeName + "_id[label=ID]\n"
+                + nodeName + "_symbol[label=\":=\"]\n"
+                + nodeName + "_value[label=\"NUEVO VALOR\"]\n"
+                + nodeName + "_name[label=\"" + this.id + "\"]\n";
+
+        String ast = "start -> statements\nstatements -> " + nodeName + "\n"
+                + nodeName + " -> " + nodeName + "_id\n"
+                + nodeName + " -> " + nodeName + "_symbol\n"
+                + nodeName + " -> " + nodeName + "_value\n"
+                + nodeName + "_id -> " + nodeName + "_name\n";
+        ast += exp.generarastCP(nodeName + "_value", arbol);
+
+        return labels + ast;
     }
 
     @Override
-    public String generarastCP(String padre) {
-        return temp + "[label=asignacion]\n" + padre + " -> " + temp + "\n" + ast;
+    public String generarastCP(String padre, Arbol arbol) {
+        String nodeName = "asignacion" + arbol.getContador();
+        String labels = nodeName + "[label=\"asignacion\"]\n"
+                + nodeName + "_id[label=ID]\n"
+                + nodeName + "_symbol[label=\":=\"]\n"
+                + nodeName + "_value[label=\"NUEVO VALOR\"]\n"
+                + nodeName + "_name[label=\"" + this.id + "\"]\n";
+
+        String ast = padre + " -> " + nodeName + "\n"
+                + nodeName + " -> " + nodeName + "_id\n"
+                + nodeName + " -> " + nodeName + "_symbol\n"
+                + nodeName + " -> " + nodeName + "_value\n"
+                + nodeName + "_id -> " + nodeName + "_name\n";
+        ast += exp.generarastCP(nodeName + "_value", arbol);
+
+        return labels + ast;
+    }
+
+    @Override
+    public String generarAA(String padre, Arbol arbol, Tabla tabla) {
+        return exp.generarAA(padre, arbol, tabla);
     }
 }

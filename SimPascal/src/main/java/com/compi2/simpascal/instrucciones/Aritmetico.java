@@ -14,7 +14,6 @@ public class Aritmetico extends Instruccion {
     private Instruccion opL;
     private Instruccion opR;
     private Instruccion opU;
-    private String ast, temp, temp2;
     private final OpAritmeticos operacion;
 
     public Aritmetico(Instruccion opU, OpAritmeticos operacion, int linea, int columna) {
@@ -32,9 +31,6 @@ public class Aritmetico extends Instruccion {
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
-        ast = "";
-        temp = "aritmetico" + arbol.getContador();
-        temp2 = temp;
         Object izq = null, der = null, unico = null;
 
         if (this.opU != null) {
@@ -43,7 +39,6 @@ public class Aritmetico extends Instruccion {
                 return unico;
             }
 
-            ast += this.opU.generarastCP(temp);
         } else {
             if (this.opL == null || this.opR == null) {
                 return new Errores("SINTACTICO", "Nulos", linea, columna);
@@ -56,9 +51,6 @@ public class Aritmetico extends Instruccion {
             if (der instanceof Errores) {
                 return der;
             }
-
-            ast += this.opL.generarastCP(temp);
-            ast += this.opR.generarastCP(temp);
         }
 
         return switch (operacion) {
@@ -80,8 +72,6 @@ public class Aritmetico extends Instruccion {
     public Object suma(Object opL, Object opR) {
         var tipoL = this.opL.tipo.getDato();
         var tipoR = this.opR.tipo.getDato();
-
-        temp += "[label=\"+\"]";
 
         switch (tipoL) {
             case ENTERO -> {
@@ -193,7 +183,6 @@ public class Aritmetico extends Instruccion {
         var tipoL = this.opL.tipo.getDato();
         var tipoR = this.opR.tipo.getDato();
 
-        temp += "[label=\"-\"]";
         switch (tipoL) {
             case ENTERO -> {
                 switch (tipoR) {
@@ -259,7 +248,6 @@ public class Aritmetico extends Instruccion {
         var tipoL = this.opL.tipo.getDato();
         var tipoR = this.opR.tipo.getDato();
 
-        temp += "[label=\"*\"]";
         switch (tipoL) {
             case ENTERO -> {
                 switch (tipoR) {
@@ -404,8 +392,7 @@ public class Aritmetico extends Instruccion {
 
     public Object negacion(Object unico) {
         var tipoU = this.opU.tipo.getDato();
-        
-        temp += "[label=\"-\"]";
+
         switch (tipoU) {
             case ENTERO -> {
                 this.tipo.setTipo(Dato.ENTERO);
@@ -422,12 +409,35 @@ public class Aritmetico extends Instruccion {
     }
 
     @Override
-    public String generarast() {
+    public String generarast(Arbol arbol) {
         return "";
     }
 
     @Override
-    public String generarastCP(String padre) {
-        return temp + "\n" + padre + " -> " + temp2 + "\n" + ast;
+    public String generarastCP(String padre, Arbol arbol) {
+        String nodeName = "op_arit" + arbol.getContador();
+        String labels = nodeName + "[label=\"" + operacion.name() + "\"]\n";
+        String ast = padre + " -> " + nodeName + "\n";
+        if (opU == null) {
+            ast += this.opL.generarastCP(nodeName, arbol);
+            ast += this.opR.generarastCP(nodeName, arbol);
+        } else {
+            ast += this.opU.generarastCP(nodeName, arbol);
+        }
+        return labels + ast;
+    }
+
+    @Override
+    public String generarAA(String padre, Arbol arbol, Tabla tabla) {
+        String aa = "";
+        if (opU != null) {
+            aa += opU.generarAA(padre, arbol, tabla);
+        } else {
+            aa += opL.generarAA(padre, arbol, tabla);
+
+            aa += opR.generarAA(padre, arbol, tabla);
+        }
+
+        return aa;
     }
 }
