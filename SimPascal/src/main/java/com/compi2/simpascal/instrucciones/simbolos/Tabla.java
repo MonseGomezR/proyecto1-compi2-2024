@@ -1,5 +1,7 @@
 package com.compi2.simpascal.instrucciones.simbolos;
 
+import com.compi2.simpascal.instrucciones.Funcion;
+import com.compi2.simpascal.instrucciones.Procedimiento;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -8,21 +10,28 @@ import java.util.LinkedList;
  * @author mgome
  */
 public class Tabla {
+
     private Tabla tablaAnterior;
     private LinkedList<Tabla> tablasSiguientes;
     private HashMap<String, Object> tablaActual;
+    private HashMap<String, Funcion> funciones;
+    private HashMap<String, Procedimiento> procedimientos;
 
     private String nombre;
 
     public Tabla() {
         this.tablaActual = new HashMap<>();
         this.tablasSiguientes = new LinkedList<>();
+        this.funciones = new HashMap<>();
+        this.procedimientos = new HashMap<>();
         this.nombre = "";
     }
 
     public Tabla(Tabla tablaAnterior) {
         this.tablaAnterior = tablaAnterior;
         this.tablaActual = new HashMap<>();
+        this.funciones = new HashMap<>();
+        this.procedimientos = new HashMap<>();
         this.nombre = "";
     }
 
@@ -33,8 +42,7 @@ public class Tabla {
     public void setTablasSiguientes(LinkedList<Tabla> tablasSiguientes) {
         this.tablasSiguientes = tablasSiguientes;
     }
-    
-    
+
     public Tabla getTablaAnterior() {
         return this.tablaAnterior;
     }
@@ -42,7 +50,6 @@ public class Tabla {
     public void setTablaAnterior(Tabla tablaAnterior) {
         this.tablaAnterior = tablaAnterior;
     }
-    
 
     public HashMap<String, Object> getTablaActual() {
         return tablaActual;
@@ -52,7 +59,6 @@ public class Tabla {
         this.tablaActual = tablaActual;
     }
 
-    
     public String getNombre() {
         return nombre;
     }
@@ -60,16 +66,12 @@ public class Tabla {
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
-    
 
     public boolean setVariable(Simbolo simbolo) {
         Simbolo busqueda = (Simbolo) this.tablaActual.get(simbolo.getId().toLowerCase());
         if (busqueda == null) {
-            /*Lista busqueda2 = this.listasActuales.get(simbolo.getId().toLowerCase());
-            if (busqueda2 == null) {*/
-                this.tablaActual.put(simbolo.getId().toLowerCase(), simbolo);
-                return true;
-           // }
+            this.tablaActual.put(simbolo.getId().toLowerCase(), simbolo);
+            return true;
         }
         return false;
     }
@@ -84,18 +86,9 @@ public class Tabla {
         return null;
     }
 
-    /*public boolean setMetodo(Metodo metodo) {
-        Metodo busqueda = this.metodosActuales.get(metodo.id.toLowerCase());
-        if (busqueda == null) {
-            this.metodosActuales.put(metodo.id.toLowerCase(), metodo);
-            return true;
-        }
-        return false;
-    }
-
-    public Metodo getMetodo(String id) {
-        for (TablaSimbolos i = this; i != null; i = i.getTablaAnterior()) {
-            Metodo busqueda = i.metodosActuales.get(id.toLowerCase());
+    public Funcion getFuncion(String id) {
+        for (Tabla i = this; i != null; i = i.getTablaAnterior()) {
+            Funcion busqueda = i.funciones.get(id.toLowerCase());
             if (busqueda != null) {
                 return busqueda;
             }
@@ -103,43 +96,29 @@ public class Tabla {
         return null;
     }
 
-    public boolean addList(Lista lista) {
-        Lista busqueda = this.listasActuales.get(lista.getId().toLowerCase());
-        Simbolo b = this.getVariable(lista.getId());
-        if (b == null) {
-            if (busqueda == null) {
-                this.listasActuales.put(lista.getId().toLowerCase(), lista);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public Lista getList(String id) {
-        for (TablaSimbolos i = this; i != null; i = i.getTablaAnterior()) {
-            Lista busqueda = i.listasActuales.get(id.toLowerCase());
-            if (busqueda != null) {
-                return busqueda;
-            }
-        }
-        return null;
-    }
-
-    public boolean setStruct(String identificador, Struct struct) {
-        if (this.listaStructs.containsKey(struct.getNombre().toLowerCase())) {
+    public boolean addFuncion(Funcion funcion) {
+        if (this.funciones.containsKey(funcion.nombre)) {
             return false;
         }
-        this.listaStructs.put(struct.getNombre().toLowerCase(), struct);
+        this.funciones.put(funcion.nombre, funcion);
         return true;
     }
-
-    public Struct getStruct(String identificador) {
-        for (TablaSimbolos i = this; i != null; i = i.getTablaAnterior()) {
-            Struct busqueda = i.listaStructs.get(identificador.toLowerCase());
+    
+    public Procedimiento getProcedimiento(String id) {
+        for (Tabla i = this; i != null; i = i.getTablaAnterior()) {
+            Procedimiento busqueda = i.procedimientos.get(id.toLowerCase());
             if (busqueda != null) {
                 return busqueda;
             }
         }
         return null;
-    }*/
+    }
+
+    public boolean addProcedimiento(Procedimiento procedimiento) {
+        if (this.procedimientos.containsKey(procedimiento.nombre)) {
+            return false;
+        }
+        this.procedimientos.put(procedimiento.nombre, procedimiento);
+        return true;
+    }
 }

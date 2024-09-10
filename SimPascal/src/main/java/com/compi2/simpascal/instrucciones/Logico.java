@@ -32,35 +32,36 @@ public class Logico extends Instruccion {
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
-        Object conIzq = null, conDer = null, unica = null;
         if (this.cU != null) {
-            unica = this.cU.interpretar(arbol, tabla);
-            if (unica instanceof Errores) {
-                return unica;
-            }
-        } else {
-            conIzq = this.cL.interpretar(arbol, tabla);
-            if (conIzq instanceof Errores) {
-                return conIzq;
-            }
-            conDer = this.cR.interpretar(arbol, tabla);
-            if (conDer instanceof Errores) {
-                return conDer;
-            }
-        }
+            var valueU = this.cU.interpretar(arbol, tabla);
 
-        return switch (operacion) {
-            case OR ->
-                (boolean) conIzq || (boolean) conDer;
-            case AND ->
-                (boolean) conIzq && (boolean) conDer;
-            case XOR ->
-                (boolean) conIzq ^ (boolean) conDer;
-            case NOT ->
-                !(boolean) unica;
-            default ->
-                new Errores("SEMANTICO", "Operador logico invalido", this.linea, this.columna);
-        };
+            if (valueU instanceof Errores) {
+                return valueU;
+            }
+
+            return !(boolean) valueU;
+        } else {
+            var valueL = this.cL.interpretar(arbol, tabla);
+            var valueR = this.cR.interpretar(arbol, tabla);
+
+            if (valueL instanceof Errores) {
+                return valueL;
+            }
+            if (valueR instanceof Errores) {
+                return valueR;
+            }
+
+            return switch (operacion) {
+                case OR ->
+                    (boolean) valueL || (boolean) valueR;
+                case AND ->
+                    (boolean) valueL && (boolean) valueR;
+                case XOR ->
+                    (boolean) valueL ^ (boolean) valueR;
+                default ->
+                    new Errores("SEMANTICO", "Operador logico invalido", this.linea, this.columna);
+            };
+        }
     }
 
     @Override

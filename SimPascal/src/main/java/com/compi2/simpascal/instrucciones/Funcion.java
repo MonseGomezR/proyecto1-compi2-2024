@@ -23,6 +23,9 @@ public class Funcion extends Subprograma {
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
+        var returnVal = tabla.getVariable(nombre);
+        var returnValue = returnVal.getValor();
+
         if (!declaraciones.isEmpty()) {
             for (Instruccion declaracion : declaraciones) {
                 declaracion.interpretar(arbol, tabla);
@@ -36,7 +39,12 @@ public class Funcion extends Subprograma {
                 if (resultado instanceof Errores) {
                     return resultado;
                 }
+                var returnValaux = tabla.getVariable(nombre);
+                if (instruccion instanceof AsignacionVar && returnValaux.getValor() != returnValue && i != statements.size() - 1) {
+                    return new Errores("Semantico", "Existe codigo no ejecutable en la funcion.", linea, columna);
+                }
             }
+
         }
 
         retorno = tabla.getVariable(nombre);

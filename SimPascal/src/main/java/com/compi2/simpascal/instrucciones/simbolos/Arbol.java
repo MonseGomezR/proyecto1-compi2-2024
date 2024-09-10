@@ -26,6 +26,7 @@ public class Arbol {
         this.tablaGlobal = new Tabla();
         this.errores = new LinkedList<>();
         this.funciones = new LinkedList<>();
+        this.procedimientos = new LinkedList<>();
         this.contador = 0;
         this.contadorAA = 0;
     }
@@ -99,7 +100,7 @@ public class Arbol {
         this.procedimientos.add(procedimiento);
     }
 
-    public Instruccion getProcedimiento(String id) {
+    public Procedimiento getProcedimiento(String id) {
         for (var p : this.procedimientos) {
             if (p.nombre.equalsIgnoreCase(id)) {
                 return p;

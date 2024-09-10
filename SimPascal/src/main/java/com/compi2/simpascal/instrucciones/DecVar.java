@@ -89,7 +89,7 @@ public class DecVar extends Instruccion {
     public String generarast(Arbol arbol) {
         String nodeName = "variables_" + arbol.getContador();
         String labels = nodeName + "[label=\"variables\"]\n";
-        String ast = "start -> declaraciones\ndeclaraciones -> " + nodeName + "\n";
+        String ast = "start -> declaraciones\ndeclaraciones -> declaracionesN\ndeclaracionesN ->" + nodeName + "\n";
         String tipoV;
         String id;
         int i = 0;
@@ -98,17 +98,11 @@ public class DecVar extends Instruccion {
             tipoV = variableU.getTipo().getDato().toString();
             id = variableU.getId();
             labels += nodeName + "U_dec[label=\"variable\"]\n"
-                    + nodeName + "U_dec_id[label=\"ID\"]\n"
-                    + nodeName + "U_dec_symbol[label=\":\"]\n"
-                    + nodeName + "U_dec_type[label=\"TIPO\"]\n"
-                    + nodeName + "U_dec_value[label=\"" + tipoV + "\"]\n"
-                    + nodeName + "U_dec_name[label=\"" + id + "\"]\n\n";
+                    + nodeName + "U_dec_id[label=\"ID: " + id + "\"]\n"
+                    + nodeName + "U_dec_type[label=\"TIPO: " + tipoV + "\"]\n";
             ast += nodeName + " -> " + nodeName + "_dec\n"
                     + nodeName + "U_dec -> " + nodeName + "U_dec_id\n"
-                    + nodeName + "U_dec -> " + nodeName + "U_dec_symbol\n"
-                    + nodeName + "U_dec -> " + nodeName + "U_dec_type\n"
-                    + nodeName + "U_dec_type -> " + nodeName + "U_dec_value\n"
-                    + nodeName + "U_dec_id -> " + nodeName + "U_dec_name\n";
+                    + nodeName + "U_dec -> " + nodeName + "U_dec_type\n";
         } else {
             for (Simbolo variable : variables) {
                 tipoV = variable.getTipo().getDato().toString();
@@ -116,17 +110,11 @@ public class DecVar extends Instruccion {
                 i++;
 
                 labels += nodeName + "_dec" + i + "[label=\"variable\"]\n"
-                        + nodeName + "_dec" + i + "_id[label=\"ID\"]\n"
-                        + nodeName + "_dec" + i + "_symbol[label=\":\"]\n"
-                        + nodeName + "_dec" + i + "_type[label=\"TIPO\"]\n"
-                        + nodeName + "_dec" + i + "_value[label=\"" + tipoV + "\"]\n"
-                        + nodeName + "_dec" + i + "_name[label=\"" + id + "\"]\n\n";
+                        + nodeName + "_dec" + i + "_id[label=\"ID: " + id + "\"]\n"
+                        + nodeName + "_dec" + i + "_type[label=\"TIPO: " + tipoV + "\"]\n";
                 ast += nodeName + " -> " + nodeName + "_dec" + i + "\n"
                         + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_id\n"
-                        + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_symbol\n"
-                        + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_type\n"
-                        + nodeName + "_dec" + i + "_type -> " + nodeName + "_dec" + i + "_value\n"
-                        + nodeName + "_dec" + i + "_id -> " + nodeName + "_dec" + i + "_name\n";
+                        + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_type\n";
             }
 
         }
@@ -138,8 +126,9 @@ public class DecVar extends Instruccion {
     public String generarastCP(String padre, Arbol arbol) {
         String nodeName = "variables_" + arbol.getContador();
         String labels = nodeName + "[label=\"variables\"]\n"
-                + padre + "declaraciones[label=declaraciones]\n";
-        String ast = padre + " -> " + padre + "declaraciones\n" + padre + "declaraciones -> " + nodeName + "\n";
+                + nodeName + "declaraciones[label=declaraciones]\n";
+        String ast = padre + " -> " + nodeName + "declaraciones\n"
+                + nodeName + "declaraciones -> " + nodeName + "\n";
         String tipoV;
         String id;
         int i = 0;
@@ -148,17 +137,11 @@ public class DecVar extends Instruccion {
             tipoV = variableU.getTipo().getDato().toString();
             id = variableU.getId();
             labels += nodeName + "U_dec[label=\"variable\"]\n"
-                    + nodeName + "U_dec_id[label=\"ID\"]\n"
-                    + nodeName + "U_dec_symbol[label=\":\"]\n"
-                    + nodeName + "U_dec_type[label=\"TIPO\"]\n"
-                    + nodeName + "U_dec_value[label=\"" + tipoV + "\"]\n"
-                    + nodeName + "U_dec_name[label=\"" + id + "\"]\n\n";
+                    + nodeName + "U_dec_id[label=\"ID: " + id + "\"]\n"
+                    + nodeName + "U_dec_type[label=\"TIPO: " + tipoV + "\"]\n";
             ast += nodeName + " -> " + nodeName + "_dec\n"
                     + nodeName + "U_dec -> " + nodeName + "U_dec_id\n"
-                    + nodeName + "U_dec -> " + nodeName + "U_dec_symbol\n"
-                    + nodeName + "U_dec -> " + nodeName + "U_dec_type\n"
-                    + nodeName + "U_dec_type -> " + nodeName + "U_dec_value\n"
-                    + nodeName + "U_dec_id -> " + nodeName + "U_dec_name\n";
+                    + nodeName + "U_dec -> " + nodeName + "U_dec_type\n";
         }
 
         for (Simbolo variable : variables) {
@@ -167,24 +150,18 @@ public class DecVar extends Instruccion {
             i++;
 
             labels += nodeName + "_dec" + i + "[label=\"variable\"]\n"
-                    + nodeName + "_dec" + i + "_id[label=\"ID\"]\n"
-                    + nodeName + "_dec" + i + "_symbol[label=\":\"]\n"
-                    + nodeName + "_dec" + i + "_type[label=\"TIPO\"]\n"
-                    + nodeName + "_dec" + i + "_value[label=\"" + tipoV + "\"]\n"
-                    + nodeName + "_dec" + i + "_name[label=\"" + id + "\"]\n\n";
+                    + nodeName + "_dec" + i + "_id[label=\"ID: " + id + "\"]\n"
+                    + nodeName + "_dec" + i + "_type[label=\"TIPO: " + tipoV + "\"]\n";
             ast += nodeName + " -> " + nodeName + "_dec" + i + "\n"
                     + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_id\n"
-                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_symbol\n"
-                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_type\n"
-                    + nodeName + "_dec" + i + "_type -> " + nodeName + "_dec" + i + "_value\n"
-                    + nodeName + "_dec" + i + "_id -> " + nodeName + "_dec" + i + "_name\n";
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_type\n";
         }
         return labels + ast;
     }
 
     @Override
     public String generarAA(String padre, Arbol arbol, Tabla tabla) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return "";
     }
 
 }

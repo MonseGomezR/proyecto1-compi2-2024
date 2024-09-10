@@ -88,13 +88,11 @@ public class AsignacionVar extends Instruccion {
         String nodeName = "asignacion" + arbol.getContador();
         String labels = nodeName + "[label=\"asignacion\"]\n"
                 + nodeName + "_id[label=ID]\n"
-                + nodeName + "_symbol[label=\":=\"]\n"
-                + nodeName + "_value[label=\"NUEVO VALOR\"]\n"
+                + nodeName + "_value[label=\"VALOR\"]\n"
                 + nodeName + "_name[label=\"" + this.id + "\"]\n";
 
         String ast = "start -> statements\nstatements -> " + nodeName + "\n"
                 + nodeName + " -> " + nodeName + "_id\n"
-                + nodeName + " -> " + nodeName + "_symbol\n"
                 + nodeName + " -> " + nodeName + "_value\n"
                 + nodeName + "_id -> " + nodeName + "_name\n";
         ast += exp.generarastCP(nodeName + "_value", arbol);
@@ -106,16 +104,12 @@ public class AsignacionVar extends Instruccion {
     public String generarastCP(String padre, Arbol arbol) {
         String nodeName = "asignacion" + arbol.getContador();
         String labels = nodeName + "[label=\"asignacion\"]\n"
-                + nodeName + "_id[label=ID]\n"
-                + nodeName + "_symbol[label=\":=\"]\n"
-                + nodeName + "_value[label=\"NUEVO VALOR\"]\n"
-                + nodeName + "_name[label=\"" + this.id + "\"]\n";
+                + nodeName + "_id[label=\"ID: " + this.id + "\"]\n"
+                + nodeName + "_value[label=\"VALOR\"]\n";
 
         String ast = padre + " -> " + nodeName + "\n"
                 + nodeName + " -> " + nodeName + "_id\n"
-                + nodeName + " -> " + nodeName + "_symbol\n"
-                + nodeName + " -> " + nodeName + "_value\n"
-                + nodeName + "_id -> " + nodeName + "_name\n";
+                + nodeName + " -> " + nodeName + "_value\n";
         ast += exp.generarastCP(nodeName + "_value", arbol);
 
         return labels + ast;

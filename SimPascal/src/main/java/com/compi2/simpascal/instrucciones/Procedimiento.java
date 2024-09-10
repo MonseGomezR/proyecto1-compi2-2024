@@ -38,12 +38,10 @@ public class Procedimiento extends Subprograma {
                 + nodeName + "_declaraciones[label=declaraciones]\n"
                 + nodeName + "_statements[label=statements]\n";
 
-        String ast = "start -> funciones\nfunciones -> " + nodeName + "\n"
+        String ast = "start -> procedimientos\nprocedimientos -> " + nodeName + "\n"
                 + nodeName + " -> " + nodeName + "_parametros\n"
                 + nodeName + " -> " + nodeName + "_declaraciones\n"
-                + nodeName + " -> " + nodeName + "_statements\n"
-                + nodeName + " -> " + nodeName + "_tipo\n"
-                + nodeName + "_tipo -> " + nodeName + "_tipoV\n";
+                + nodeName + " -> " + nodeName + "_statements\n";
         
         for (int i = 0; i < this.parametros.size(); i++) {
             var id = parametros.get(i).get("id");
@@ -51,8 +49,8 @@ public class Procedimiento extends Subprograma {
             
             labels += nodeName + "_parametro_id[label=\"" + id.toString() + "\"]\n"
                     + nodeName + "_parametro_tipo[label=\"" + tipoP.getDato().name() + "\"]\n";
-            ast += nodeName + "_parametros -> " + nodeName + "_parametro_id\n" +
-                    nodeName + "_parametros -> " + nodeName + "_parametro_tipo\n";
+            ast += nodeName + "_parametros -> " + nodeName + "_parametro_id\n";
+            
         }
 
         for (Instruccion declaracion : declaraciones) {
@@ -72,6 +70,11 @@ public class Procedimiento extends Subprograma {
 
     @Override
     public String generarAA(String padre, Arbol arbol, Tabla tabla) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        String aa = "";
+        for (Instruccion instruccion : statements) {
+            aa += instruccion.generarAA(padre, arbol, tabla);
+        }
+        return aa;
     }
+    
 }

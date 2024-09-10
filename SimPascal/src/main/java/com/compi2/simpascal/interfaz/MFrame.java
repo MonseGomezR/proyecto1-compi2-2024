@@ -3,7 +3,7 @@ package com.compi2.simpascal.interfaz;
 import com.compi2.simpascal.instrucciones.Errores;
 import com.compi2.simpascal.instrucciones.Funcion;
 import com.compi2.simpascal.instrucciones.Instruccion;
-import com.compi2.simpascal.instrucciones.LlamadaFun;
+import com.compi2.simpascal.instrucciones.LlamadaFunc;
 import com.compi2.simpascal.instrucciones.Procedimiento;
 import com.compi2.simpascal.instrucciones.simbolos.Arbol;
 import com.compi2.simpascal.instrucciones.simbolos.Tabla;
@@ -103,7 +103,10 @@ public class MFrame extends javax.swing.JFrame {
             s = new Lexico(new BufferedReader(new StringReader(texto)));
             p = new parser(s);
             var resultado = p.parse();
-            String astD = "digraph " + p.programName + "{\n";
+            String astD = "digraph " + p.programName + "{\n rankdir=TB\n"
+                    + "nodesep=0.1\n"
+                    + "ranksep=0.4\n"
+                    + "node [style=filled, fontsize=10, width=1, height=.3, color=aquamarine]";
             String AA = "digraph " + p.programName + "AA{\n";
             if (resultado != null) {
                 ast = new Arbol((LinkedList<Instruccion>) resultado.value);
@@ -115,9 +118,17 @@ public class MFrame extends javax.swing.JFrame {
                 for (var a : ast.getInstrucciones()) {
                     if (a != null) {
                         if (a instanceof Funcion f) {
-                            ast.addFunciones(f);
+                            if(!tabla.addFuncion(f)) {
+                                errores.add(new Errores("Semantico", "La funcion ya esta declarada.", f.linea, f.columna));
+                            }else {
+                                ast.addFunciones(f);
+                            }
                         } else if (a instanceof Procedimiento pr) {
-                            ast.addProcedimiento(pr);
+                            if(!tabla.addProcedimiento(pr)) {
+                                errores.add(new Errores("Semantico", "El procedimiento ya esta declarado.", pr.linea, pr.columna));
+                            }else {
+                                ast.addProcedimiento(pr);
+                            }
                         } else {
                             var as = a.interpretar(ast, tabla);
 
@@ -126,8 +137,6 @@ public class MFrame extends javax.swing.JFrame {
                             }
                             AA += a.generarAA("start", ast, tabla);
                         }
-
-                        
 
                         astD += a.generarast(ast);
 
@@ -154,7 +163,7 @@ public class MFrame extends javax.swing.JFrame {
             Set<String> lineasUnicas = new LinkedHashSet<>(Arrays.asList(lineas));
             var r = String.join("\n", lineasUnicas);
 
-            System.out.println(r + "\n\n\n}");
+            System.out.println(r + "\n}\n\n");
 
             String[] lineas2 = AA.split("\n");
             Set<String> lineasUnicas2 = new LinkedHashSet<>(Arrays.asList(lineas2));
@@ -170,7 +179,7 @@ public class MFrame extends javax.swing.JFrame {
                 System.out.println(i);
                 erroresText += i + "\n";
             }
-            consolePanel2.jTextPane1.setText(erroresText);
+            consolePanel2.jTextPane1.setText(erroresText + ex.getMessage());
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 

@@ -1,8 +1,7 @@
 package com.compi2.simpascal.instrucciones;
 
 import com.compi2.simpascal.instrucciones.operadores.OpAritmeticos;
-import com.compi2.simpascal.instrucciones.simbolos.Arbol;
-import com.compi2.simpascal.instrucciones.simbolos.Tabla;
+import com.compi2.simpascal.instrucciones.simbolos.*;
 import com.compi2.simpascal.instrucciones.tipos.*;
 
 /**
@@ -31,56 +30,59 @@ public class Aritmetico extends Instruccion {
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
-        Object izq = null, der = null, unico = null;
-
         if (this.opU != null) {
-            unico = this.opU.interpretar(arbol, tabla);
-            if (unico instanceof Errores) {
-                return unico;
+            var valueU = this.opU.interpretar(arbol, tabla);
+            if (valueU instanceof Errores) {
+                return valueU;
             }
+            return this.negacion(valueU);
 
         } else {
             if (this.opL == null || this.opR == null) {
                 return new Errores("SINTACTICO", "Nulos", linea, columna);
             }
-            izq = this.opL.interpretar(arbol, tabla);
-            if (izq instanceof Errores) {
-                return izq;
-            }
-            der = this.opR.interpretar(arbol, tabla);
-            if (der instanceof Errores) {
-                return der;
-            }
-        }
 
-        return switch (operacion) {
-            case SUMA ->
-                this.suma(izq, der);
-            case RESTA ->
-                this.resta(izq, der);
-            case MULTIPLICACION ->
-                this.multiplicacion(izq, der);
-            case DIVISION ->
-                this.division(izq, der);
-            case NEGACION ->
-                this.negacion(unico);
-            default ->
-                new Errores("SEMANTICO", "Operador invalido", this.linea, this.columna);
-        };
+            var valueL = this.opL.interpretar(arbol, tabla);
+            var valueR = this.opR.interpretar(arbol, tabla);
+
+            var typeL = this.opL.tipo.getDato();
+            var typeR = this.opR.tipo.getDato();
+
+            if (valueL == null) {
+                return new Errores("SEMANTICO", "Un elemento es nulo", this.linea, this.columna);
+            }
+            if (valueR == null) {
+                return new Errores("SEMANTICO", "Un elemento es nulo", this.linea, this.columna);
+            }
+
+            if (valueL instanceof Errores) {
+                return valueL;
+            }
+            if (valueR instanceof Errores) {
+                return valueR;
+            }
+
+            return switch (operacion) {
+                case SUMA ->
+                    this.suma(valueL, valueR, typeL, typeR);
+                case RESTA ->
+                    this.resta(valueL, valueR, typeL, typeR);
+                case MULTIPLICACION ->
+                    this.multiplicacion(valueL, valueR, typeL, typeR);
+                case DIVISION ->
+                    this.division(valueL, valueR, typeL, typeR);
+                default ->
+                    new Errores("SEMANTICO", "Operador invalido", this.linea, this.columna);
+            };
+        }
     }
 
-    public Object suma(Object opL, Object opR) {
-        var tipoL = this.opL.tipo.getDato();
-        var tipoR = this.opR.tipo.getDato();
-
-        switch (tipoL) {
+    public Object suma(Object opL, Object opR, Dato typeL, Dato typeR) {
+        switch (typeL) {
             case ENTERO -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.ENTERO);
-                        Object resultado = (int) opL + (int) opR;
-                        System.out.println((int) opL + " + " + (int) opR + " = " + resultado.toString());
-
                         return (int) opL + (int) opR;
                     }
                     case DECIMAL -> {
@@ -101,7 +103,7 @@ public class Aritmetico extends Instruccion {
                 }
             }
             case DECIMAL -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         return (double) opL + (int) opR;
@@ -124,7 +126,7 @@ public class Aritmetico extends Instruccion {
                 }
             }
             case CADENA -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.CADENA);
                         return opL.toString() + opR.toString();
@@ -151,7 +153,7 @@ public class Aritmetico extends Instruccion {
                 }
             }
             case CARACTER -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.ENTERO);
                         return (char) opL + (int) opR;
@@ -179,13 +181,10 @@ public class Aritmetico extends Instruccion {
         }
     }
 
-    public Object resta(Object opL, Object opR) {
-        var tipoL = this.opL.tipo.getDato();
-        var tipoR = this.opR.tipo.getDato();
-
-        switch (tipoL) {
+    public Object resta(Object opL, Object opR, Dato typeL, Dato typeR) {
+        switch (typeL) {
             case ENTERO -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.ENTERO);
                         return (int) opL - (int) opR;
@@ -204,7 +203,7 @@ public class Aritmetico extends Instruccion {
                 }
             }
             case DECIMAL -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         return (double) opL - (int) opR;
@@ -223,7 +222,7 @@ public class Aritmetico extends Instruccion {
                 }
             }
             case CARACTER -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.ENTERO);
                         return (char) opL - (int) opR;
@@ -244,13 +243,10 @@ public class Aritmetico extends Instruccion {
         }
     }
 
-    public Object multiplicacion(Object opL, Object opR) {
-        var tipoL = this.opL.tipo.getDato();
-        var tipoR = this.opR.tipo.getDato();
-
-        switch (tipoL) {
+    public Object multiplicacion(Object opL, Object opR, Dato typeL, Dato typeR) {
+        switch (typeL) {
             case ENTERO -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.ENTERO);
                         return (int) opL * (int) opR;
@@ -269,7 +265,7 @@ public class Aritmetico extends Instruccion {
                 }
             }
             case DECIMAL -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         return (double) opL * (int) opR;
@@ -288,7 +284,7 @@ public class Aritmetico extends Instruccion {
                 }
             }
             case CARACTER -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.ENTERO);
                         return (char) opL * (int) opR;
@@ -309,13 +305,10 @@ public class Aritmetico extends Instruccion {
         }
     }
 
-    public Object division(Object opL, Object opR) {
-        var tipoL = this.opL.tipo.getDato();
-        var tipoR = this.opR.tipo.getDato();
-
-        switch (tipoL) {
+    public Object division(Object opL, Object opR, Dato typeL, Dato typeR) {
+        switch (typeL) {
             case ENTERO -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         if ((int) opR == 0) {
@@ -338,7 +331,7 @@ public class Aritmetico extends Instruccion {
                 }
             }
             case DECIMAL -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         if ((int) opR == 0) {
@@ -366,7 +359,7 @@ public class Aritmetico extends Instruccion {
                 }
             }
             case CARACTER -> {
-                switch (tipoR) {
+                switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         if ((int) opR == 0) {
@@ -434,7 +427,6 @@ public class Aritmetico extends Instruccion {
             aa += opU.generarAA(padre, arbol, tabla);
         } else {
             aa += opL.generarAA(padre, arbol, tabla);
-
             aa += opR.generarAA(padre, arbol, tabla);
         }
 

@@ -1,7 +1,7 @@
 package com.compi2.simpascal.sintactico;
 
 import com.compi2.simpascal.instrucciones.*;
-import com.compi2.simpascal.instrucciones.operadores.OpAritmeticos;
+import com.compi2.simpascal.instrucciones.operadores.*;
 import com.compi2.simpascal.instrucciones.simbolos.Simbolo;
 import com.compi2.simpascal.instrucciones.tipos.*;
 import java.util.LinkedList;
@@ -28,31 +28,14 @@ parser code {:
         };
     }
 
-    public void syntax_error(Symbol s) {
-        if(s.toString().equals("#0")) {
-            listaErrores.add(new Errores("SINTACTICO RECUPERABLE" , "Final del archivo antes de lo esperado? No se, hay algo mal we", s.left, s.right));
-        }
+    public void syntax_error(Symbol s){
+        listaErrores.add(new Errores("SINTACTICO RECUPERABLE", "Componente inesperado: " + s.value.toString(), 
+            s.left, s.right));
     }
 
-    public void unrecovered_syntax_error (Symbol s) {
-        // Obtener los IDs de los tokens esperados
-        List<Integer> expectedTokens = expected_token_ids();
-
-        // Construir una lista de los nombres de los tokens esperados
-        StringBuilder expectedSymbols = new StringBuilder();
-        for (int tokenId : expectedTokens) {
-            expectedSymbols.append(symnames.tokens[tokenId]).append(", ");
-        }
-
-        // Eliminar la última coma y espacio si hay tokens esperados
-        if (expectedSymbols.length() > 2) {
-            expectedSymbols.setLength(expectedSymbols.length() - 2);
-        }
-
-        // Crear el mensaje de error con el símbolo que se encontró y los que se esperaban
-        listaErrores.add(new Errores("SINTACTICO NO RECUPERABLE", 
-            "No se esperaba el componente '" + s.value + "'. Se esperaba: " + expectedSymbols.toString(), 
-            s.left, s.right));
+    public void unrecovered_syntax_error(Symbol s) { 
+        listaErrores.add(new Errores("SINTACTICO NO RECUPERABLE", s.value.toString(), 
+            s.left-1, s.right));
     }
 :}
 
@@ -61,7 +44,7 @@ action code
 :}
 
 // ---Terminales - Palabras clave
-terminal ARRAY, BEGIN, BOOLEAN, CHAR, CONST, DOWNTO, DO, ELSE, END,
+terminal ARRAY, BEGIN, BOOLEAN, CHAR, CONST, DOWNTO, DO, ELSEIF, ELSE, END,
          FILE, FOR, FUNCTION, GOTO, IF, IN, INTEGER, LABEL,
          NIL, OF, ON, PACKED, PROCEDURE, PROGRAM, READLN, REAL,
          RECORD, REPEAT, SET, STRING, THEN, TO, TYPE, UNTIL, VAR, WHILE, WITH, WRITELN;
@@ -84,13 +67,13 @@ terminal OR, AND, NOT;
 // ---No Terminales
 
 nonterminal LinkedList<Instruccion>     inicio, i_instrucciones, instrucciones;
-nonterminal Instruccion                 instruccion;
+nonterminal Instruccion                 instruccion, instruccionIf;
 
 nonterminal Tipo                        tipos;
 nonterminal Instruccion                 expresion, e_arit, e_logic, e_relac, e_nativ, casteo;
-nonterminal LinkedList<Instruccion>     i_declaracion, i_funciones, i_procedimientos, i_fun_proc;
-nonterminal Instruccion                 i_write, i_asignar, funcion, procedimiento;
-nonterminal Instruccion                 dec_const, dec_var, llam_fun;
+nonterminal LinkedList<Instruccion>     i_declaracion, i_funciones, i_procedimientos, i_fun_proc, ins_statements, i_elseIfs;
+nonterminal Instruccion                 i_write, i_asignar, funcion, procedimiento, i_if, i_elseIf, i_else, i_for;
+nonterminal Instruccion                 dec_const, dec_var, llam_fun, llam_proc;
 nonterminal Simbolo                     constante;
 nonterminal LinkedList<Simbolo>         constantes_list;
 nonterminal LinkedList<HashMap>         parametros;
@@ -115,12 +98,12 @@ inicio  ::= PROGRAM ID:c PUNTOCOMA
             i_declaracion:a  
             i_fun_proc:fp 
             i_instrucciones:b PUNTO        {:  
-                                        RESULT = new LinkedList<>();
-                                        programName = c;
-                                        RESULT.addAll(a);
-                                        RESULT.addAll(fp);
-                                        RESULT.addAll(b);
-                                    :}
+                                                RESULT = new LinkedList<>();
+                                                programName = c;
+                                                RESULT.addAll(a);
+                                                RESULT.addAll(fp);
+                                                RESULT.addAll(b);
+                                            :}
 ;
 
 i_fun_proc ::= i_funciones:a i_procedimientos:b {: 
@@ -141,36 +124,46 @@ i_fun_proc ::= i_funciones:a i_procedimientos:b {:
                                                 :}
 ;
 
-i_instrucciones ::= BEGIN instrucciones:a END  {: RESULT = a; :}
-                |   error:e                          {: 
-                                                        listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
-                                                            "Error en i_instrucciones", 
-                                                             eleft, eright));
-                                                        RESULT = new LinkedList<>(); :}
+i_instrucciones ::= BEGIN instrucciones:a END   {: RESULT = a; :}
+                |   error:e                     {: 
+                                                    listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
+                                                        "Error en i_instrucciones", 
+                                                        eleft, eright));
+                                                    RESULT = new LinkedList<>(); 
+                                                :}
 ;
 
-instrucciones ::= instrucciones:a instruccion:b     {:  
-                                                        RESULT = a; 
-                                                        if(b != null) {
-                                                            RESULT.add(b);
-                                                        }
-                                                    :}
-                | instruccion:a                     {:  
-                                                        RESULT = new LinkedList<>(); 
-                                                        if(a != null) {
-                                                            RESULT.add(a);
-                                                        }
-                                                    :}
+instrucciones ::= instrucciones:a instruccion:b    {:  
+                                                                RESULT = a; 
+                                                                if(b != null) {
+                                                                    RESULT.add(b);
+                                                                }
+                                                            :}
+                | instruccion:a                    {:  
+                                                                RESULT = new LinkedList<>(); 
+                                                                if(a != null) {
+                                                                    RESULT.add(a);
+                                                                }
+                                                            :}
 ;
 
-instruccion ::= i_write:a PUNTOCOMA      {:  RESULT = a; :}
-            |   i_asignar:a PUNTOCOMA    {:  RESULT = a; :}
-            |   error:e                   {: 
-                                            listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
-                                        "Instrucción no válida.", 
-                                        eleft, eright));
-                                    RESULT = null;
-                                :}
+instruccion ::= i_write:a PUNTOCOMA         {:  RESULT = a; :}
+            |   i_asignar:a PUNTOCOMA       {:  RESULT = a; :}
+            |   i_if:a PUNTOCOMA            {:  RESULT = a; :}
+            |   i_for:a PUNTOCOMA
+            |   llam_proc:a PUNTOCOMA       {:  RESULT = a; :}
+            |   error:e PUNTOCOMA           {: 
+                                                listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
+                                                "Instrucción inválida, falta ';' o error antes de ';'.", 
+                                                eleft, eright));
+                                                RESULT = null;
+                                            :}
+            |   error:e                     {: 
+                                                listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
+                                                    "Falta ';' después de la instrucción.", 
+                                                    eleft, eright + 1));
+                                                RESULT = null;
+                                            :}
 ;
 
 tipos   ::= INTEGER     {:  RESULT = new Tipo(Dato.ENTERO);     :}
@@ -181,11 +174,6 @@ tipos   ::= INTEGER     {:  RESULT = new Tipo(Dato.ENTERO);     :}
 ;
 
 i_write   ::= WRITELN L_PAREN write_aux:a R_PAREN       {:  RESULT = new WriteLn(a, aleft, aright); :}
-            | error:e                                   {:  listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
-                                                                "Instrucción Writeln no válida.", 
-                                                                eleft, eright));
-                                                            RESULT = null;
-                                                        :}
 ;
 
 write_aux   ::= write_aux:a COMA expresion:b        {:  
@@ -195,15 +183,49 @@ write_aux   ::= write_aux:a COMA expresion:b        {:
             |   expresion:a                         {:  
                                                         RESULT = new LinkedList<>(); 
                                                         RESULT.add(a);
+                                                    :}        
+            | error:e                               {: 
+                                                        listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
+                                                            "Expresion inválida o falta ','.", 
+                                                            eleft, eright));
+                                                        RESULT = null;
                                                     :}
 ;
 
 i_asignar ::=   ID:a ASIGNACION expresion:b               {:  RESULT = new AsignacionVar(a, b, aleft, aright);    :}
+;
 
+i_if ::=    IF L_PAREN expresion:a R_PAREN THEN ins_statements:st                            {: RESULT = new If(a, st, null, null, aleft, aright); System.out.println("If");:}
+        |   IF L_PAREN expresion:a R_PAREN THEN ins_statements:st i_elseIfs:efs              {: RESULT = new If(a, st, efs, null, aleft, aright); System.out.println("If elseifs");:}
+        |   IF L_PAREN expresion:a R_PAREN THEN ins_statements:st i_else:e                   {: RESULT = new If(a, st, null, e, aleft, aright); System.out.println("If else ");:}
+        |   IF L_PAREN expresion:a R_PAREN THEN ins_statements:st i_elseIfs:efs i_else:e     {: RESULT = new If(a, st, efs, e, aleft, aright); System.out.println("If completo");:}
+;
 
+i_elseIfs ::=   i_elseIfs:a i_elseIf:b                  {: RESULT = a; RESULT.add(b); :}
+            |   i_elseIf:a                              {: RESULT = new LinkedList<>(); RESULT.add(a); :}
+;
 
+i_elseIf ::=    ELSEIF L_PAREN expresion:a R_PAREN THEN ins_statements:st   {: RESULT = new ElseIf(a, st, aleft, aright); :}
+;
 
+i_else ::=  ELSE ins_statements:st   {: RESULT = new Else(st, stleft, stright); :}
+;
 
+ins_statements ::=  instruccionIf:i                                       {: RESULT = new LinkedList<>(); RESULT.add(i); :}
+                |   BEGIN instrucciones:a instruccion:b END   {: RESULT = a; RESULT.add(b); :}
+;
+
+instruccionIf ::= i_write:a             {:  RESULT = a; :}
+            |   i_asignar:a             {:  RESULT = a; :}
+            |   error:e                 {: 
+                                            listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
+                                                "Instrucción no válida.", 
+                                                eleft, eright));
+                                            RESULT = null;
+                                        :}
+;
+
+i_for ::= FOR:f ID:id ASIGNACION expresion:asig TO expresion:b DO ins_statements:ins     {:   RESULT = new For(id, asig, b, ins, fleft, fright); :}
 ;
 
 i_declaracion ::= dec_const:a dec_var:b         {: 
@@ -225,7 +247,7 @@ i_declaracion ::= dec_const:a dec_var:b         {:
 ;
 
 
-dec_const ::= CONST constantes_list:a PUNTO         {:
+dec_const ::= CONST constantes_list:a          {:
                                                         RESULT = new DecConst(a, aleft, aright);
                                                     :}
 ;
@@ -243,7 +265,7 @@ constante ::= ID:a IGUALA expresion:b PUNTOCOMA             {: RESULT = new Simb
 ;
 
 
-dec_var   ::= VAR variables_list:a PUNTO                    {:  RESULT = new DecVar(a, aleft, aright); :}
+dec_var   ::= VAR variables_list:a                     {:  RESULT = new DecVar(a, aleft, aright); :}
 ;
 variables_list ::=  variables_list:a var_aux:b              {:  RESULT = a; RESULT.addAll(b);   :}
                 |   var_aux:a                               {:  RESULT = new LinkedList<>(); RESULT.addAll(a);   :}
@@ -289,7 +311,10 @@ funcion ::= FUNCTION:f ID:id L_PAREN parametros:p R_PAREN DOSPUNTOS tipos:t PUNT
             i_instrucciones:i PUNTOCOMA {:  RESULT = new Funcion(id, t, p, dec, i, fleft, fright);    :}
 ;
 
-llam_fun ::= ID:id L_PAREN llam_par:lp R_PAREN              {:  RESULT = new LlamadaFun(id, lp, idleft, idright);  :}
+llam_fun ::= ID:id L_PAREN llam_par:lp R_PAREN              {:  RESULT = new LlamadaFunc(id, lp, idleft, idright);  :}
+;
+
+llam_proc ::= ID:id L_PAREN llam_par:lp R_PAREN             {:  RESULT = new LlamadaProc(id, lp, idleft, idright);  :}
 ;
 
 llam_par ::= llam_par:a COMA expresion:b    {:  RESULT = a; RESULT.add(b);  :}
@@ -310,23 +335,23 @@ procedimiento ::= PROCEDURE:p ID:id L_PAREN parametros:pr R_PAREN PUNTOCOMA
                   i_instrucciones:i  PUNTOCOMA                               {:  RESULT = new Procedimiento(id, pr, dec, i, new Tipo(Dato.VOID), pleft, pright); :}
 
 ;
-parametros ::=  parametros:a COMA ID:id DOSPUNTOS tipos:t           {:  
+parametros ::=  parametros:a COMA variable:ids DOSPUNTOS tipos:t     {:  
                                                                         RESULT = a;
-                                                                        var mapa = new HashMap<String, Object>();
-                                                                        mapa.put("id", id);
-                                                                        mapa.put("tipo", t);
-                                                                        RESULT.add(mapa);
+                                                                        for(var id : ids) {
+                                                                            var mapa = new HashMap<String, Object>();
+                                                                            mapa.put("id", id);
+                                                                            mapa.put("tipo", t);
+                                                                            RESULT.add(mapa);
+                                                                        }
                                                                     :}
-            |   ID:id DOSPUNTOS tipos:t                             {:  
-                                                                        RESULT = new LinkedList<HashMap>(); 
-                                                                        var mapa = new HashMap<String, Object>();
-                                                                        mapa.put("id", id);
-                                                                        mapa.put("tipo", t);
-                                                                        RESULT.add(mapa);
-                                                                    :}
-            |   ID:id                                               {:  
-                                                                        listaErrores.add(new Errores("SINTACTICO RECUPERABLE", "Se esperaba una coma después de la declaración de parámetros", idleft, idright));
-                                                                        RESULT = new LinkedList<HashMap>(); 
+            |   variable:ids DOSPUNTOS tipos:t                             {:  
+                                                                        RESULT = new LinkedList<HashMap>();
+                                                                        for(var id : ids) { 
+                                                                            var mapa = new HashMap<String, Object>();
+                                                                            mapa.put("id", id);
+                                                                            mapa.put("tipo", t);
+                                                                            RESULT.add(mapa);
+                                                                        }
                                                                     :}
 ;
 
@@ -350,17 +375,17 @@ e_arit ::=  MENOS expresion:a                                   {:  RESULT = new
         |   expresion:a MENOS expresion:b                       {:  RESULT = new Aritmetico(a, b, OpAritmeticos.RESTA, aleft, aright);          :}
 ;
 
-e_relac ::= expresion:a IGUALA expresion:b      {:  System.out.println(a + " es igual a " + b);         :}
-         |  expresion:a DIFERENTEA expresion:b  {:  System.out.println(a + " es diferente a " + b);     :}
-         |  expresion:a MAYOR expresion:b       {:  System.out.println(a + " es mayor que " + b);       :}
-         |  expresion:a MENOR expresion:b       {:  System.out.println(a + " es menor que " + b);       :}
-         |  expresion:a MAYORIGUAL expresion:b  {:  System.out.println(a + " es mayor o igual a " + b); :}
-         |  expresion:a MENORIGUAL expresion:b  {:  System.out.println(a + " es menor o igual a " + b); :}
+e_relac ::= expresion:a IGUALA expresion:b      {:  RESULT = new Relacional(a, b, OpRelacionales.IGUALA, aleft, aright); :}
+         |  expresion:a DIFERENTEA expresion:b  {:  RESULT = new Relacional(a, b, OpRelacionales.DIFERENTEA, aleft, aright); :}
+         |  expresion:a MAYOR expresion:b       {:  RESULT = new Relacional(a, b, OpRelacionales.MAYOR, aleft, aright); :}
+         |  expresion:a MENOR expresion:b       {:  RESULT = new Relacional(a, b, OpRelacionales.MENOR, aleft, aright); :}
+         |  expresion:a MAYORIGUAL expresion:b  {:  RESULT = new Relacional(a, b, OpRelacionales.MAYORIGUAL, aleft, aright); :}
+         |  expresion:a MENORIGUAL expresion:b  {:  RESULT = new Relacional(a, b, OpRelacionales.MENORIGUAL, aleft, aright); :}
 ;
 
-e_logic ::= NOT expresion:a                     {:  System.out.println("Not " + a);     :}
-         |  expresion:a OR expresion:b          {:  System.out.println(a + " o " + b);  :}
-         |  expresion:a AND expresion:b         {:  System.out.println(a + " y " + b);  :}
+e_logic ::= NOT expresion:a                     {:  RESULT = new Logico(a, OpLogicos.NOT, aleft, aright); :}
+         |  expresion:a OR expresion:b          {:  RESULT = new Logico(a, b, OpLogicos.OR, aleft, aright); :}
+         |  expresion:a AND expresion:b         {:  RESULT = new Logico(a, b, OpLogicos.AND, aleft, aright); :}
 ;
 
 e_nativ ::= ENTERO:a        {:   RESULT = new Nativo(Integer.parseInt(a), new Tipo(Dato.ENTERO), aleft, aright);        :}

@@ -38,6 +38,7 @@ PR_CONST        =   "const"
 PR_DO           =   "do"
 PR_DOWNTO       =   "downto"
 
+PR_ELSEIF         =   "else if"
 PR_ELSE         =   "else"
 PR_END          =   "end"
 
@@ -49,7 +50,7 @@ PR_GOTO         =   "goto"
 
 PR_IF           =   "if"
 PR_IN           =   "in"
-PR_INTEGER      =   "int"
+PR_INTEGER      =   "integer"
 
 PR_LABEL        =   "label"
 
@@ -146,6 +147,7 @@ DOS_PUNTOS      =   ":"
 <YYINITIAL> {PR_DO}         { return new Symbol(sym.DO, yyline, yycolumn, yytext()); }
 <YYINITIAL> {PR_DOWNTO}     { return new Symbol(sym.DOWNTO, yyline, yycolumn, yytext()); }
 
+<YYINITIAL> {PR_ELSEIF}     { return new Symbol(sym.ELSEIF, yyline, yycolumn, yytext()); }
 <YYINITIAL> {PR_ELSE}       { return new Symbol(sym.ELSE, yyline, yycolumn, yytext()); }
 <YYINITIAL> {PR_END}        { return new Symbol(sym.END, yyline, yycolumn, yytext()); }
 

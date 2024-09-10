@@ -55,7 +55,7 @@ public class DecConst extends Instruccion {
     public String generarast(Arbol arbol) {
         String nodeName = "constantes" + arbol.getContador();
         String labels = nodeName + "[label=\"constantes\"]\n";
-        String ast = "start -> declaraciones\ndeclaraciones -> " + nodeName + "\n";
+        String ast = "start -> declaraciones\ndeclaraciones -> declaracionesN\n declaracionesN -> "+ nodeName + "\n";
         String valorC ;
         String id;
         int i = 0;
@@ -71,17 +71,11 @@ public class DecConst extends Instruccion {
             i++;
 
             labels += nodeName + "_dec" + i + "[label=\"constante\"]\n"
-                    + nodeName + "_dec" + i + "_id[label=\"ID\"]\n"
-                    + nodeName + "_dec" + i + "_symbol[label=\"=\"]\n"
-                    + nodeName + "_dec" + i + "_value[label=\"VALOR\"]\n"
-                    + nodeName + "_dec" + i + "_valueV[label=\"" + valorC + "\"]\n"
-                    + nodeName + "_dec" + i + "_name[label=\"" + id + "\"]\n\n";
+                    + nodeName + "_dec" + i + "_id[label=\"ID: " + id + "\"]\n"
+                    + nodeName + "_dec" + i + "_value[label=\"VALOR: " + valorC + "\"]\n";
             ast += nodeName + " -> " + nodeName + "_dec" + i + "\n"
                     + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_id\n"
-                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_symbol\n"
-                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_value\n"
-                    + nodeName + "_dec" + i + "_value -> " + nodeName + "_dec" + i + "_valueV\n"
-                    + nodeName + "_dec" + i + "_id -> " + nodeName + "_dec" + i + "_name\n";
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_value\n";
         }
         return labels + ast;
     }
@@ -90,8 +84,9 @@ public class DecConst extends Instruccion {
     public String generarastCP(String padre, Arbol arbol) {
         String nodeName = "constantes" + arbol.getContador();
         String labels = nodeName + "[label=\"constantes\"]\n"
-                + padre + "declaraciones[label=declaraciones]\n";
-        String ast = padre + " -> " + padre + "declaraciones\n" + padre + "declaraciones -> " + nodeName + "\n";
+                + nodeName + "declaraciones[label=declaraciones]\n";
+        String ast = padre + " -> " + nodeName + "declaraciones\n"
+                + nodeName + "declaraciones -> " + nodeName + "\n";
         String valorC;
         String id;
         int i = 0;
@@ -107,23 +102,17 @@ public class DecConst extends Instruccion {
             i++;
 
             labels += nodeName + "_dec" + i + "[label=\"constante\"]\n"
-                    + nodeName + "_dec" + i + "_id[label=\"ID\"]\n"
-                    + nodeName + "_dec" + i + "_symbol[label=\"=\"]\n"
-                    + nodeName + "_dec" + i + "_value[label=\"VALOR\"]\n"
-                    + nodeName + "_dec" + i + "_valueV[label=\"" + valorC + "\"]\n"
-                    + nodeName + "_dec" + i + "_name[label=\"" + id + "\"]\n\n";
+                    + nodeName + "_dec" + i + "_id[label=\"ID: " + id + "\"]\n"
+                    + nodeName + "_dec" + i + "_value[label=\"VALOR: " + valorC + "\"]\n";
             ast += nodeName + " -> " + nodeName + "_dec" + i + "\n"
                     + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_id\n"
-                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_symbol\n"
-                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_value\n"
-                    + nodeName + "_dec" + i + "_value -> " + nodeName + "_dec" + i + "_valueV\n"
-                    + nodeName + "_dec" + i + "_id -> " + nodeName + "_dec" + i + "_name\n";
+                    + nodeName + "_dec" + i + " -> " + nodeName + "_dec" + i + "_value\n";
         }
         return labels + ast;
     }
 
     @Override
     public String generarAA(String padre, Arbol arbol, Tabla tabla) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return "";
     }
 }
