@@ -34,34 +34,29 @@ public class Logico extends Instruccion {
     public Object interpretar(Arbol arbol, Tabla tabla) {
         if (this.cU != null) {
             var valueU = this.cU.interpretar(arbol, tabla);
-
-            if (valueU instanceof Errores) {
-                return valueU;
+            if (valueU != null) {
+                return !(boolean) valueU;
             }
-
-            return !(boolean) valueU;
         } else {
             var valueL = this.cL.interpretar(arbol, tabla);
             var valueR = this.cR.interpretar(arbol, tabla);
 
-            if (valueL instanceof Errores) {
-                return valueL;
+            if (valueL == null || valueR == null) {
+                arbol.errores.add(new Errores("SEMANTICO", "Operador logico invalido", this.linea, this.columna));
+            } else {
+                return switch (operacion) {
+                    case OR ->
+                        (boolean) valueL || (boolean) valueR;
+                    case AND ->
+                        (boolean) valueL && (boolean) valueR;
+                    case XOR ->
+                        (boolean) valueL ^ (boolean) valueR;
+                    default ->
+                        arbol.errores.add(new Errores("SEMANTICO", "Operador logico invalido", this.linea, this.columna));
+                };
             }
-            if (valueR instanceof Errores) {
-                return valueR;
-            }
-
-            return switch (operacion) {
-                case OR ->
-                    (boolean) valueL || (boolean) valueR;
-                case AND ->
-                    (boolean) valueL && (boolean) valueR;
-                case XOR ->
-                    (boolean) valueL ^ (boolean) valueR;
-                default ->
-                    new Errores("SEMANTICO", "Operador logico invalido", this.linea, this.columna);
-            };
         }
+        return null;
     }
 
     @Override

@@ -26,47 +26,53 @@ public class LlamadaFunc extends Instruccion {
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
+        int contador = 0;
         var funcion = arbol.getFuncion(this.id);
         if (funcion == null) {
-            return new Errores("SEMANTICO", "La funcion no existente", this.linea, this.columna);
-        }
+            arbol.errores.add(new Errores("SEMANTICO", "La funcion " + this.id + " no existe.", this.linea, this.columna));
+        } else {
+            var tablaLlamada = new Tabla(tabla);
+            tabla.addTablaHija(tablaLlamada);
+            tablaLlamada.setNombre("funcion_" + this.id + "_" + arbol.getContador());
 
-        var tablaLlamada = new Tabla(tabla);
-        tablaLlamada.setNombre("funcion_" + this.id + "_" + arbol.getContador());
-
-        if (funcion.parametros.size() != this.parametros.size()) {
-            return new Errores("SEMANTICO", "Parametros incorrectos", this.linea, this.columna);
-        }
-
-        for (int i = 0; i < this.parametros.size(); i++) {
-            var idFP = (String) funcion.parametros.get(i).get("id");
-            var valorP = this.parametros.get(i).interpretar(arbol, tabla);
-            var tipoFP = (Tipo) funcion.parametros.get(i).get("tipo");
-            if (valorP instanceof Errores) {
-                return valorP;
-            }
-            valores[i] = valorP;
-
-            Simbolo s = new Simbolo(tipoFP, idFP, valorP, true);
-
-            var parametro = new DecVar(s, this.linea, this.columna);
-            var resultado = parametro.interpretar(arbol, tablaLlamada);
-
-            if (resultado instanceof Errores) {
-                return resultado;
+            if (funcion.parametros.size() != this.parametros.size()) {
+                arbol.errores.add(new Errores("Semantico", "Los parametros recibidos son incorrectos", this.linea, this.columna));
             }
 
-            if (s.getTipo().getDato() != this.parametros.get(i).tipo.getDato()) {
-                return new Errores("SEMANTICO", "Error en tipo de parametros", this.linea, this.columna);
-            }
-        }
-        Simbolo s = new Simbolo(funcion.tipo, this.id, null, true);
-        var paramReturn = new DecVar(s, this.linea, this.columna);
-        paramReturn.interpretar(arbol, tablaLlamada);
+            for (var parametro : this.parametros) {
+                var idFP = (String) funcion.parametros.get(contador).get("id");
+                var valorP = parametro.interpretar(arbol, tabla);
+                var tipoFP = (Tipo) funcion.parametros.get(contador).get("tipo");
 
-        var resultadoFuncion = funcion.interpretar(arbol, tablaLlamada);
-        this.tipo = funcion.tipo;
-        return resultadoFuncion;
+                if (valorP != null) {
+                    valores[contador] = valorP;
+
+                    Simbolo s = new Simbolo(tipoFP, idFP, valorP, true);
+                    s.setCategoria("Parametro");
+                    s.setAmbito(tablaLlamada.getNombre());
+
+                    var parametroD = new DecVar(s, this.linea, this.columna);
+                    parametroD.interpretar(arbol, tablaLlamada);
+
+                    if (s.getTipo().getDato() != this.parametros.get(contador).tipo.getDato()) {
+                        arbol.errores.add(new Errores("Semantico", "El tipo de dato de los parametros no coincide.", this.linea, this.columna));
+                    }
+                    contador++;
+                }
+
+            }
+            Simbolo s = new Simbolo(funcion.tipo, this.id, null, true);
+            s.setCategoria("Return");
+            s.setAmbito(tablaLlamada.getNombre());
+            var paramReturn = new DecVar(s, this.linea, this.columna);
+            paramReturn.interpretar(arbol, tablaLlamada);
+
+            var resultadoFuncion = funcion.interpretar(arbol, tablaLlamada);
+            this.tipo = funcion.tipo;
+            return resultadoFuncion;
+
+        }
+        return null;
     }
 
     @Override
@@ -81,7 +87,7 @@ public class LlamadaFunc extends Instruccion {
                 + nodeName + "params[label=parametros]\n";
         String ast = padre + " -> " + nodeName + "\n"
                 + nodeName + " -> " + nodeName + "params\n";
-                
+
         for (int i = 0; i < this.parametros.size(); i++) {
             var parametro = parametros.get(i);
             var idP = (String) arbol.getFuncion(this.id).parametros.get(i).get("id");
@@ -91,24 +97,24 @@ public class LlamadaFunc extends Instruccion {
         }
         return label + ast;
     }
-    
+
     @Override
     public String generarAA(String padre, Arbol arbol, Tabla tabla) {
         String nodeName = "f_" + id + "_" + arbol.getContadorAA();
         String labels = nodeName + "[label=\"Funcion: " + id + "(";
-        for(int i = 0; i < parametros.size(); i++) {
+        for (int i = 0; i < parametros.size(); i++) {
             var valor = valores[i];
             labels += valor.toString();
-            if(i != parametros.size() - 1) {
+            if (i != parametros.size() - 1) {
                 labels += ", ";
             }
         }
         labels += ")\"]\n";
         String ast = padre + " -> " + nodeName + "\n";
-        
+
         var funcion = arbol.getFuncion(this.id);
         ast += funcion.generarAA(nodeName, arbol, tabla);
 
-        return labels +  ast;
+        return labels + ast;
     }
 }

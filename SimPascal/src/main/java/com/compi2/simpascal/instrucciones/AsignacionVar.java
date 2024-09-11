@@ -33,58 +33,67 @@ public class AsignacionVar extends Instruccion {
         var variable = tabla.getVariable(id);
 
         if (variable == null) {
-            return new Errores("SEMANTICO", "Variable no exitente", this.linea, this.columna);
-        }
-        if (!variable.getMutable()) {
-            return new Errores("SEMANTICO", "La variable es constante", this.linea, this.columna);
-        }
+            exp.interpretar(arbol, tabla);
+        } else {
+            if (!variable.getMutable()) {
+                arbol.errores.add(new Errores("Semantico", "La variable es constante", this.linea, this.columna));
+            } else {
 
-        var newValor = exp.interpretar(arbol, tabla);
+                var newValor = exp.interpretar(arbol, tabla);
 
-        if (newValor instanceof Errores) {
-            return newValor;
-        } else if (newValor == null) {
-            return new Errores("SEMANTICO.", "Error de Asignacion.", linea, columna);
-        }
+                if (newValor == null) {
+                    arbol.errores.add(new Errores("Semantico.", "Error de Asignacion.", linea, columna));
+                } else {
 
-        var tipoVariable = variable.getTipo().getDato();
-        var tipoNewValor = exp.tipo.getDato();
+                    var tipoVariable = variable.getTipo().getDato();
+                    var tipoNewValor = exp.tipo.getDato();
 
-        if (variable.getValor() instanceof char[] variableVector) {
-            if (index == null) {
-                var vv = (String) newValor;
-                if (tipoNewValor.equals(Dato.CADENA)) {
-                    if (vv.length() == variableVector.length) {
-                        for (int i = 0; i < variableVector.length; i++) {
-                            variableVector[i] = vv.charAt(i);
+                    if (variable.getValor() instanceof char[] variableVector) {
+                        if (index == null) {
+                            var vv = (String) newValor;
+                            if (tipoNewValor.equals(Dato.CADENA)) {
+                                if (vv.length() == variableVector.length) {
+                                    for (int i = 0; i < variableVector.length; i++) {
+                                        variableVector[i] = vv.charAt(i);
+                                    }
+                                    variable.setValor(variableVector);
+                                }
+                                return null;
+                            } else {
+                                if (tipoVariable != tipoNewValor) {
+                                    arbol.errores.add(new Errores("SEMANTICO", "Tipos erroneos en asignacion", this.linea, this.columna));
+                                } else {
+
+                                    variable.setValor(newValor);
+                                }
+                            }
+                        }
+
+                        return null;
+                    } else {
+
+                        if (tipoVariable != tipoNewValor) {
+                            if (tipoVariable == Dato.BOOLEANO && tipoNewValor == Dato.ENTERO) {
+                                newValor = !newValor.equals(0);
+                                variable.setValor(newValor);
+                            } else {
+                                arbol.errores.add(new Errores("SEMANTICO", "Tipos erroneos en asignacion", this.linea, this.columna));
+                            }
+
+                        } else {
+
+                            variable.setValor(newValor);
                         }
                     }
-                    variable.setValor(variableVector);
-                    return null;
-                } else {
-                    if (tipoVariable != tipoNewValor) {
-                        return new Errores("SEMANTICO", "Tipos erroneos en asignacion", this.linea, this.columna);
-                    }
                 }
             }
-
-            return null;
-        } else {
-
-            if (tipoVariable != tipoNewValor) {
-                if (tipoVariable == Dato.BOOLEANO && tipoNewValor == Dato.ENTERO) {
-                    newValor = !newValor.equals(0);
-                } else {
-                    return new Errores("SEMANTICO", "Tipos erroneos en asignacion", this.linea, this.columna);
-                }
-            }
-            variable.setValor(newValor);
-            return null;
         }
+        return null;
     }
 
     @Override
-    public String generarast(Arbol arbol) {
+    public String generarast(Arbol arbol
+    ) {
         String nodeName = "asignacion" + arbol.getContador();
         String labels = nodeName + "[label=\"asignacion\"]\n"
                 + nodeName + "_id[label=ID]\n"
@@ -101,7 +110,8 @@ public class AsignacionVar extends Instruccion {
     }
 
     @Override
-    public String generarastCP(String padre, Arbol arbol) {
+    public String generarastCP(String padre, Arbol arbol
+    ) {
         String nodeName = "asignacion" + arbol.getContador();
         String labels = nodeName + "[label=\"asignacion\"]\n"
                 + nodeName + "_id[label=\"ID: " + this.id + "\"]\n"
@@ -116,7 +126,9 @@ public class AsignacionVar extends Instruccion {
     }
 
     @Override
-    public String generarAA(String padre, Arbol arbol, Tabla tabla) {
+    public String generarAA(String padre, Arbol arbol,
+            Tabla tabla
+    ) {
         return exp.generarAA(padre, arbol, tabla);
     }
 }

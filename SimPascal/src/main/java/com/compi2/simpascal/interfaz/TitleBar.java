@@ -31,7 +31,6 @@ public class TitleBar extends javax.swing.JPanel {
 
         setOpaque(false);
         setPreferredSize(new java.awt.Dimension(1080, 30));
-        setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         closeButton.setFont(new java.awt.Font("Inter", 1, 18)); // NOI18N
         closeButton.setForeground(new java.awt.Color(255, 255, 255));
@@ -45,14 +44,31 @@ public class TitleBar extends javax.swing.JPanel {
                 closeButtonActionPerformed(evt);
             }
         });
-        add(closeButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1030, 0, 50, 30));
 
         jLabel1.setBackground(new java.awt.Color(255, 255, 255));
-        jLabel1.setFont(new java.awt.Font("Inter", 1, 20)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Monospaced", 1, 18)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("SIM-Pascal");
-        add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 0, 170, 30));
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 860, Short.MAX_VALUE)
+                .addComponent(closeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(closeButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
     }// </editor-fold>//GEN-END:initComponents
 
     private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed

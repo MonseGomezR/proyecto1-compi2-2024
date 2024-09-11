@@ -27,54 +27,26 @@ public class If extends Instruccion {
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
         var cond = this.condicion.interpretar(arbol, tabla);
-        boolean listo = false;
-        if (cond instanceof Errores) {
-            return cond;
+        if (cond == null) {
+            arbol.errores.add(new Errores("Semantico", "La condicion de If es nula.", linea, columna));
         }
 
         if (this.condicion.tipo.getDato() != Dato.BOOLEANO) {
-            return new Errores("SEMANTICO", "Expresion invalida", this.linea, this.columna);
+            arbol.errores.add(new Errores("SEMANTICO", "Expresion invalida", this.linea, this.columna));
         }
 
-        var newTabla = new Tabla(tabla);
-        newTabla.setNombre("Tabla If");
-        if ((boolean) cond) {
-            for (var i : this.instrucciones) {
-                var resultado = i.interpretar(arbol, newTabla);
-                if (resultado != null) {
-                    return resultado;
-                }
-            }
-        } else {
-            if (elseIfs != null) {
-                for (var elseIf : elseIfs) {
-                    var resultadoElseIf = elseIf.interpretar(arbol, newTabla);
-                    if (resultadoElseIf instanceof Errores) {
-                        return resultadoElseIf;
-                    }
-
-                    /*if (resultadoElseIf instanceof Break) {
-                        listo = true;
-                        break;
-                    }*/
-                    if (resultadoElseIf instanceof Boolean) {
-                        listo = true;
-                        resultadoElseIf = null;
-                        return resultadoElseIf;
-                    }
-                    if (resultadoElseIf != null) {
-                        return resultadoElseIf;
-                    }
-                }
-            }
-            if (elseInstr != null && !listo) {
-                var resultadoElse = elseInstr.interpretar(arbol, newTabla);
-                if (resultadoElse != null) {
-                    return resultadoElse;
-                }
-            }
-
+        for (var i : this.instrucciones) {
+            i.interpretar(arbol, tabla);
         }
+        if (elseIfs != null && !elseIfs.isEmpty()) {
+            for (var elseIf : elseIfs) {
+                elseIf.interpretar(arbol, tabla);
+            }
+        }
+        if (elseInstr != null) {
+            elseInstr.interpretar(arbol, tabla);
+        }
+
         return null;
     }
 
@@ -101,7 +73,7 @@ public class If extends Instruccion {
                 ast += elseif.generarastCP(nodeElseIf, arbol);
                 nodeIntermedio = nodeElseIf;
             }
-            
+
         }
         if (elseInstr != null) {
             labels += nodeName + "_else[label=\"else\"]\n";
@@ -136,7 +108,7 @@ public class If extends Instruccion {
                 nodeIntermedio = nodeElseIf;
             }
             aux = nodeElseIf;
-            
+
         }
         if (elseInstr != null) {
             labels += nodeName + "_else[label=\"else\"]\n";
@@ -149,7 +121,7 @@ public class If extends Instruccion {
     @Override
     public String generarAA(String padre, Arbol arbol, Tabla tabla) {
         String aa = condicion.generarAA(padre, arbol, tabla);
-        for (var instruccion: instrucciones) {
+        for (var instruccion : instrucciones) {
             aa += instruccion.generarAA(padre, arbol, tabla);
         }
         if (elseIfs != null) {
@@ -157,12 +129,12 @@ public class If extends Instruccion {
                 aa += elseif.generarAA(padre, arbol, tabla);
             }
         }
-        
+
         if (elseInstr != null) {
             aa += elseInstr.generarAA(padre, arbol, tabla);
         }
-        
+
         return aa;
-        
+
     }
 }

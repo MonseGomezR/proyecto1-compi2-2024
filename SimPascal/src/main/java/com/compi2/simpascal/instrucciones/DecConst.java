@@ -23,28 +23,29 @@ public class DecConst extends Instruccion {
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
         if (constantes.isEmpty()) {
-            return new Errores("SEMANTICO", "Declarado bloque de constantes, pero vacío", this.linea, this.columna);
-        }
+            arbol.errores.add(new Errores("Semantico", "Bloque de constantes vacio.", this.linea, this.columna));
+        } else {
+            int contador = 0;
+            for (Simbolo constante : constantes) {
+                if (constante.getValor() == null) {
+                    arbol.errores.add(new Errores("Semantico", "No se puede declarar una constante vacia.", this.linea, this.columna));
+                } else {
+                    var valor = (Instruccion) constante.getValor();
+                    var valorInterpretado = valor.interpretar(arbol, tabla);
 
-        int contador = 0;
-        for (Simbolo constante : constantes) {
-            if (constante.getValor() == null) {
-                return new Errores("SEMANTICO", "Constante no puede ser vacía", this.linea, this.columna);
-            }
+                    if (valorInterpretado != null) {
+                        constante.setValor(valorInterpretado);
 
-            var valor = (Instruccion) constante.getValor();
-            var valorInterpretado = valor.interpretar(arbol, tabla);
+                        boolean creacion = tabla.setVariable(constante);
 
-            if (valorInterpretado instanceof Errores) {
-                return valorInterpretado;
-            }
-
-            constante.setValor(valorInterpretado);
-
-            boolean creacion = tabla.setVariable(constante);
-
-            if (!creacion) {
-                return new Errores("SEMANTICO", "Constante ya existente", this.linea + contador, this.columna);
+                        if (!creacion) {
+                            arbol.errores.add(new Errores("Semantico", "La constante ya existe.", this.linea + contador, this.columna));
+                        }else {
+                            constante.setCategoria("Constante");
+                            constante.setAmbito(tabla.getNombre());
+                        }
+                    }
+                }
             }
         }
 
@@ -55,17 +56,17 @@ public class DecConst extends Instruccion {
     public String generarast(Arbol arbol) {
         String nodeName = "constantes" + arbol.getContador();
         String labels = nodeName + "[label=\"constantes\"]\n";
-        String ast = "start -> declaraciones\ndeclaraciones -> declaracionesN\n declaracionesN -> "+ nodeName + "\n";
-        String valorC ;
+        String ast = "start -> declaraciones\ndeclaraciones -> declaracionesN\n declaracionesN -> " + nodeName + "\n";
+        String valorC;
         String id;
         int i = 0;
 
         for (Simbolo constante : constantes) {
             id = constante.getId();
             var valor = constante.getValor();
-            if(valor instanceof Nativo nat) {
+            if (valor instanceof Nativo nat) {
                 valorC = nat.valor.toString();
-            }else {
+            } else {
                 valorC = constante.getValor().toString();
             }
             i++;
@@ -94,9 +95,9 @@ public class DecConst extends Instruccion {
         for (Simbolo constante : constantes) {
             id = constante.getId();
             var valor = constante.getValor();
-            if(valor instanceof Nativo nat) {
+            if (valor instanceof Nativo nat) {
                 valorC = nat.valor.toString();
-            }else {
+            } else {
                 valorC = constante.getValor().toString();
             }
             i++;

@@ -3,13 +3,20 @@ package com.compi2.simpascal.interfaz;
 //import com.compi1.javacraft.archivos.ArchivoManager;
 import com.compi2.simpascal.ArchivosManager;
 import java.awt.Color;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.LineBorder;
 
 /**
@@ -18,8 +25,8 @@ import javax.swing.border.LineBorder;
  */
 public class TabPanel extends javax.swing.JPanel {
 
-    public static Color estadoNormal = new Color(18, 175, 177);
-    public static Color seleccionado = new Color(50, 90, 90);
+    public static Color estadoNormal = new Color(50, 90, 90);
+    public static Color seleccionado = new Color(18, 175, 177);
     public static Color estadoHover = new Color(0, 142, 144);
     public static Color estadoClick = new Color(227, 102, 121);
 
@@ -32,8 +39,8 @@ public class TabPanel extends javax.swing.JPanel {
 
         initComponents();
 
-        TabButton tb = new TabButton("prueba1.jc");
-        archivosAbiertos.add(new Tab("Este es un archivo de prueba", "archivoDePrueba.jc", tb.getMainButton()));
+        TabButton tb = new TabButton("archivoDePrueba");
+        archivosAbiertos.add(new Tab("Este es un archivo de prueba", "archivoDePrueba", tb.getMainButton()));
 
         tb.getMainButton().addActionListener((ActionEvent evt) -> {
             tabSeleccionado(tb);
@@ -70,6 +77,16 @@ public class TabPanel extends javax.swing.JPanel {
         scrollPane.setViewportBorder(null);
         setOpaque(false);
 
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        scrollPane.addMouseWheelListener((MouseWheelEvent e) -> {
+            JViewport viewport = scrollPane.getViewport();
+            Point viewPosition = viewport.getViewPosition();
+            int scrollAmount = e.getWheelRotation() * 10; 
+            viewPosition.x += scrollAmount;
+            internalPanel.scrollRectToVisible(new Rectangle(viewPosition, viewport.getSize()));
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -126,17 +143,21 @@ public class TabPanel extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(scrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 1020, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addGroup(layout.createSequentialGroup()
-                .addGap(10, 10, 10)
-                .addComponent(textAreaPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(scrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 955, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(textAreaPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 933, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(scrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(textAreaPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(textAreaPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(10, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -178,7 +199,7 @@ public class TabPanel extends javax.swing.JPanel {
         boolean cancelar = false;
         String[] options = {"Crear", "Abrir"};
 
-        int selection = JOptionPane.showOptionDialog(null, "Crear archivo o abrir uno existente?", "Sim-Pascal", 0, 2, null, options, options[0]);
+        int selection = JOptionPane.showOptionDialog(null, "Crear archivo o abrir uno existente?", "Nuevo Archivo", 0, 2, null, options, options[0]);
 
         for (Tab archivosAbierto : archivosAbiertos) {
             if (archivosAbierto.getBotonAsignado() == actual.getMainButton()) {
@@ -192,7 +213,7 @@ public class TabPanel extends javax.swing.JPanel {
                 fileName = JOptionPane.showInputDialog("Ingrese el nombre del archivo:");
                 try {
                     if (!fileName.equals("")) {
-                        fileName += ".pas";
+                        fileName += "";
                         for (Tab archivosAbierto : archivosAbiertos) {
                             if (archivosAbierto.getBotonAsignado() == actual.getMainButton()) {
                                 archivosAbierto.setContenidoTextArea(textAreaPanel1.textArea.getText());
@@ -217,16 +238,16 @@ public class TabPanel extends javax.swing.JPanel {
                         if (archivoAbierto.getNombreArchivo().equals(fileName)) {
                             JOptionPane.showMessageDialog(null, "El archivo ya está abierto");
                             cancelar = true;
+                            break;
                         }
-                    }
-                    for (Tab archivosAbierto : archivosAbiertos) {
-                        if (archivosAbierto.getBotonAsignado() == actual.getMainButton()) {
-                            archivosAbierto.setContenidoTextArea(textAreaPanel1.textArea.getText());
+
+                        if (archivoAbierto.getBotonAsignado() == actual.getMainButton()) {
+                            archivoAbierto.setContenidoTextArea(textAreaPanel1.textArea.getText());
                             break;
                         }
                     }
                     newTab.setContenidoTextArea(archivo[1]);
-
+                    newTab.setDireccion(cr.ultimoFile);
                 } else {
                     cancelar = true;
                 }

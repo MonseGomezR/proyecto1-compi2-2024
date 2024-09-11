@@ -11,9 +11,11 @@ import java.util.LinkedList;
  */
 public class Tabla {
 
-    private Tabla tablaAnterior;
-    private LinkedList<Tabla> tablasSiguientes;
+    private Tabla tablaPadre;
+    private LinkedList<Tabla> tablasHijas;
     private HashMap<String, Object> tablaActual;
+    private LinkedList<Simbolo> simbolos;
+    public LinkedList<String> typeNames;
     private HashMap<String, Funcion> funciones;
     private HashMap<String, Procedimiento> procedimientos;
 
@@ -21,34 +23,41 @@ public class Tabla {
 
     public Tabla() {
         this.tablaActual = new HashMap<>();
-        this.tablasSiguientes = new LinkedList<>();
+        this.tablasHijas = new LinkedList<>();
+        this.simbolos = new LinkedList<>();
+        this.typeNames = new LinkedList<>();
         this.funciones = new HashMap<>();
         this.procedimientos = new HashMap<>();
         this.nombre = "";
     }
 
-    public Tabla(Tabla tablaAnterior) {
-        this.tablaAnterior = tablaAnterior;
+    public Tabla(Tabla tablaPadre) {
+        this.tablaPadre = tablaPadre;
         this.tablaActual = new HashMap<>();
         this.funciones = new HashMap<>();
         this.procedimientos = new HashMap<>();
+        this.simbolos = new LinkedList<>();
         this.nombre = "";
     }
 
-    public LinkedList<Tabla> getTablasSiguientes() {
-        return tablasSiguientes;
+    public LinkedList<Tabla> getTablasHijas() {
+        return tablasHijas;
     }
 
-    public void setTablasSiguientes(LinkedList<Tabla> tablasSiguientes) {
-        this.tablasSiguientes = tablasSiguientes;
+    public void setTablasHijas(LinkedList<Tabla> tablasHijas) {
+        this.tablasHijas = tablasHijas;
+    }
+    
+    public void addTablaHija(Tabla tabla) {
+        this.tablasHijas.add(tabla);
     }
 
-    public Tabla getTablaAnterior() {
-        return this.tablaAnterior;
+    public Tabla getTablaPadre() {
+        return this.tablaPadre;
     }
 
-    public void setTablaAnterior(Tabla tablaAnterior) {
-        this.tablaAnterior = tablaAnterior;
+    public void setTablaPadre(Tabla tablaPadre) {
+        this.tablaPadre = tablaPadre;
     }
 
     public HashMap<String, Object> getTablaActual() {
@@ -71,13 +80,14 @@ public class Tabla {
         Simbolo busqueda = (Simbolo) this.tablaActual.get(simbolo.getId().toLowerCase());
         if (busqueda == null) {
             this.tablaActual.put(simbolo.getId().toLowerCase(), simbolo);
+            this.simbolos.add(simbolo);
             return true;
         }
         return false;
     }
 
     public Simbolo getVariable(String id) {
-        for (Tabla i = this; i != null; i = i.getTablaAnterior()) {
+        for (Tabla i = this; i != null; i = i.getTablaPadre()) {
             Simbolo busqueda = (Simbolo) i.tablaActual.get(id.toLowerCase());
             if (busqueda != null) {
                 return busqueda;
@@ -85,9 +95,10 @@ public class Tabla {
         }
         return null;
     }
+    
 
     public Funcion getFuncion(String id) {
-        for (Tabla i = this; i != null; i = i.getTablaAnterior()) {
+        for (Tabla i = this; i != null; i = i.getTablaPadre()) {
             Funcion busqueda = i.funciones.get(id.toLowerCase());
             if (busqueda != null) {
                 return busqueda;
@@ -105,7 +116,7 @@ public class Tabla {
     }
     
     public Procedimiento getProcedimiento(String id) {
-        for (Tabla i = this; i != null; i = i.getTablaAnterior()) {
+        for (Tabla i = this; i != null; i = i.getTablaPadre()) {
             Procedimiento busqueda = i.procedimientos.get(id.toLowerCase());
             if (busqueda != null) {
                 return busqueda;
@@ -121,4 +132,14 @@ public class Tabla {
         this.procedimientos.put(procedimiento.nombre, procedimiento);
         return true;
     }
+
+    public LinkedList<Simbolo> getSimbolos() {
+        return simbolos;
+    }
+
+    public void setSimbolos(LinkedList<Simbolo> simbolos) {
+        this.simbolos = simbolos;
+    }
+    
+    
 }

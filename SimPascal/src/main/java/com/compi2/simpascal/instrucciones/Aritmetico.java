@@ -32,52 +32,43 @@ public class Aritmetico extends Instruccion {
     public Object interpretar(Arbol arbol, Tabla tabla) {
         if (this.opU != null) {
             var valueU = this.opU.interpretar(arbol, tabla);
-            if (valueU instanceof Errores) {
-                return valueU;
-            }
-            return this.negacion(valueU);
+            
+            return this.negacion(valueU, arbol);
 
         } else {
             if (this.opL == null || this.opR == null) {
-                return new Errores("SINTACTICO", "Nulos", linea, columna);
-            }
+                arbol.errores.add(new Errores("SINTACTICO", "Nulos", linea, columna));
+            } else {
 
-            var valueL = this.opL.interpretar(arbol, tabla);
-            var valueR = this.opR.interpretar(arbol, tabla);
+                var valueL = this.opL.interpretar(arbol, tabla);
+                var valueR = this.opR.interpretar(arbol, tabla);
 
-            var typeL = this.opL.tipo.getDato();
-            var typeR = this.opR.tipo.getDato();
+                var typeL = this.opL.tipo.getDato();
+                var typeR = this.opR.tipo.getDato();
 
-            if (valueL == null) {
-                return new Errores("SEMANTICO", "Un elemento es nulo", this.linea, this.columna);
-            }
-            if (valueR == null) {
-                return new Errores("SEMANTICO", "Un elemento es nulo", this.linea, this.columna);
-            }
+                if (valueL == null || valueR == null) {
+                    arbol.errores.add(new Errores("Semantico", "Operacion: Un elemento es nulo o no existe.", this.linea, this.columna));
+                } else {
 
-            if (valueL instanceof Errores) {
-                return valueL;
+                    return switch (operacion) {
+                        case SUMA ->
+                            this.suma(valueL, valueR, typeL, typeR, arbol);
+                        case RESTA ->
+                            this.resta(valueL, valueR, typeL, typeR, arbol);
+                        case MULTIPLICACION ->
+                            this.multiplicacion(valueL, valueR, typeL, typeR, arbol);
+                        case DIVISION ->
+                            this.division(valueL, valueR, typeL, typeR, arbol);
+                        default ->
+                            arbol.errores.add(new Errores("Semantico", "Operador aritmetico invalido.", this.linea, this.columna));
+                    };
+                }
             }
-            if (valueR instanceof Errores) {
-                return valueR;
-            }
-
-            return switch (operacion) {
-                case SUMA ->
-                    this.suma(valueL, valueR, typeL, typeR);
-                case RESTA ->
-                    this.resta(valueL, valueR, typeL, typeR);
-                case MULTIPLICACION ->
-                    this.multiplicacion(valueL, valueR, typeL, typeR);
-                case DIVISION ->
-                    this.division(valueL, valueR, typeL, typeR);
-                default ->
-                    new Errores("SEMANTICO", "Operador invalido", this.linea, this.columna);
-            };
         }
+        return null;
     }
 
-    public Object suma(Object opL, Object opR, Dato typeL, Dato typeR) {
+    public Object suma(Object opL, Object opR, Dato typeL, Dato typeR, Arbol arbol) {
         switch (typeL) {
             case ENTERO -> {
                 switch (typeR) {
@@ -98,7 +89,7 @@ public class Aritmetico extends Instruccion {
                         return (int) opL + (char) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Suma erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Suma erronea", this.linea, this.columna));
                     }
                 }
             }
@@ -121,7 +112,7 @@ public class Aritmetico extends Instruccion {
                         return (double) opL + (char) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Suma erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Suma erronea", this.linea, this.columna));
                     }
                 }
             }
@@ -148,7 +139,7 @@ public class Aritmetico extends Instruccion {
                         return opL.toString() + opR.toString();
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Suma erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Suma erronea", this.linea, this.columna));
                     }
                 }
             }
@@ -171,17 +162,18 @@ public class Aritmetico extends Instruccion {
                         return opL.toString() + opR.toString();
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Suma erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Suma erronea", this.linea, this.columna));
                     }
                 }
             }
             default -> {
-                return new Errores("SEMANTICO", "Suma erronea", this.linea, this.columna);
+                arbol.errores.add(new Errores("Semantico", "Suma erronea", this.linea, this.columna));
             }
         }
+        return null;
     }
 
-    public Object resta(Object opL, Object opR, Dato typeL, Dato typeR) {
+    public Object resta(Object opL, Object opR, Dato typeL, Dato typeR, Arbol arbol) {
         switch (typeL) {
             case ENTERO -> {
                 switch (typeR) {
@@ -198,7 +190,7 @@ public class Aritmetico extends Instruccion {
                         return (int) opL - (char) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Resta erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Resta erronea", this.linea, this.columna));
                     }
                 }
             }
@@ -217,7 +209,7 @@ public class Aritmetico extends Instruccion {
                         return (double) opL - (char) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Resta erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Resta erronea", this.linea, this.columna));
                     }
                 }
             }
@@ -232,18 +224,19 @@ public class Aritmetico extends Instruccion {
                         return (char) opL - (double) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Resta erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Resta erronea", this.linea, this.columna));
                     }
                 }
             }
             default -> {
-                return new Errores("SEMANTICO", "Resta erronea", this.linea, this.columna);
+                arbol.errores.add(new Errores("Semantico", "Resta erronea", this.linea, this.columna));
 
             }
         }
+        return null;
     }
 
-    public Object multiplicacion(Object opL, Object opR, Dato typeL, Dato typeR) {
+    public Object multiplicacion(Object opL, Object opR, Dato typeL, Dato typeR, Arbol arbol) {
         switch (typeL) {
             case ENTERO -> {
                 switch (typeR) {
@@ -260,7 +253,7 @@ public class Aritmetico extends Instruccion {
                         return (int) opL * (char) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Multiplicacion erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Multiplicacion erronea", this.linea, this.columna));
                     }
                 }
             }
@@ -279,7 +272,7 @@ public class Aritmetico extends Instruccion {
                         return (double) opL * (char) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Multiplicacion erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Multiplicacion erronea", this.linea, this.columna));
                     }
                 }
             }
@@ -294,25 +287,26 @@ public class Aritmetico extends Instruccion {
                         return (char) opL * (double) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Multiplicacion erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Multiplicacion erronea", this.linea, this.columna));
                     }
                 }
             }
             default -> {
-                return new Errores("SEMANTICO", "Multiplicacion erronea", this.linea, this.columna);
+                arbol.errores.add(new Errores("Semantico", "Multiplicacion erronea", this.linea, this.columna));
 
             }
         }
+        return null;
     }
 
-    public Object division(Object opL, Object opR, Dato typeL, Dato typeR) {
+    public Object division(Object opL, Object opR, Dato typeL, Dato typeR, Arbol arbol) {
         switch (typeL) {
             case ENTERO -> {
                 switch (typeR) {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         if ((int) opR == 0) {
-                            return new Errores("SEMANTICO", "Division por 0", this.linea, this.columna);
+                            arbol.errores.add(new Errores("Semantico", "Division por 0", this.linea, this.columna));
                         }
                         double r = (int) opL / (int) opR;
                         return r;
@@ -326,7 +320,7 @@ public class Aritmetico extends Instruccion {
                         return (int) opL / (char) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Division erronea", this.linea, this.columna);
+                        arbol.errores.add(new Errores("Semantico", "Division erronea", this.linea, this.columna));
                     }
                 }
             }
@@ -335,26 +329,26 @@ public class Aritmetico extends Instruccion {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         if ((int) opR == 0) {
-                            return new Errores("SEMANTICO", "Division por 0", this.linea, this.columna);
+                            arbol.errores.add( new Errores("Semantico", "Division por 0", this.linea, this.columna));
                         }
                         return (double) opL / (int) opR;
                     }
                     case DECIMAL -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         if ((double) opR == 0.0) {
-                            return new Errores("SEMANTICO", "Division por 0", this.linea, this.columna);
+                            arbol.errores.add( new Errores("Semantico", "Division por 0", this.linea, this.columna));
                         }
                         return (double) opL / (double) opR;
                     }
                     case CARACTER -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         if ((char) opR == 0) {
-                            return new Errores("SEMANTICO", "Division por 0", this.linea, this.columna);
+                            arbol.errores.add( new Errores("Semantico", "Division por 0", this.linea, this.columna));
                         }
                         return (double) opL / (char) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Division erronea", this.linea, this.columna);
+                        arbol.errores.add( new Errores("Semantico", "Division erronea", this.linea, this.columna));
                     }
                 }
             }
@@ -363,7 +357,7 @@ public class Aritmetico extends Instruccion {
                     case ENTERO -> {
                         this.tipo.setTipo(Dato.DECIMAL);
                         if ((int) opR == 0) {
-                            return new Errores("SEMANTICO", "Division por 0", this.linea, this.columna);
+                            arbol.errores.add( new Errores("Semantico", "Division por 0", this.linea, this.columna));
                         }
                         return (char) opL / (int) opR;
                     }
@@ -372,18 +366,19 @@ public class Aritmetico extends Instruccion {
                         return (char) opL / (double) opR;
                     }
                     default -> {
-                        return new Errores("SEMANTICO", "Division erronea", this.linea, this.columna);
+                        arbol.errores.add( new Errores("Semantico", "Division erronea", this.linea, this.columna));
                     }
                 }
             }
             default -> {
-                return new Errores("SEMANTICO", "Division erronea", this.linea, this.columna);
+                arbol.errores.add( new Errores("Semantico", "Division erronea", this.linea, this.columna));
 
             }
         }
+        return null;
     }
 
-    public Object negacion(Object unico) {
+    public Object negacion(Object unico, Arbol arbol) {
         var tipoU = this.opU.tipo.getDato();
 
         switch (tipoU) {
@@ -396,9 +391,10 @@ public class Aritmetico extends Instruccion {
                 return (double) unico * -1;
             }
             default -> {
-                return new Errores("SEMANTICO", "Negacion erronea", this.linea, this.columna);
+                arbol.errores.add(new Errores("SEMANTICO", "Negacion erronea", this.linea, this.columna));
             }
         }
+        return null;
     }
 
     @Override

@@ -23,314 +23,461 @@ public class Relacional extends Instruccion {
 
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
-        if (this.cL == null || this.cR == null) {
-            return new Errores("SINTACTICO", "Nulos", linea, columna);
-        }
-
         var valueL = this.cL.interpretar(arbol, tabla);
         var valueR = this.cR.interpretar(arbol, tabla);
 
         var typeL = this.cL.tipo.getDato();
         var typeR = this.cR.tipo.getDato();
 
-        if (valueL == null) {
-            return new Errores("SEMANTICO", "Un elemento es nulo", this.linea, this.columna);
+        if (valueL == null || valueR == null) {
+            arbol.errores.add(new Errores("SEMANTICO", "Una condicion es nula.", this.linea, this.columna));
+        } else {
+            return switch (operacion) {
+                case IGUALA ->
+                    this.igualA(valueL, valueR, typeL, typeR, arbol);
+                case DIFERENTEA ->
+                    this.diferenteA(valueL, valueR, typeL, typeR, arbol);
+                case MAYOR ->
+                    this.mayor(valueL, valueR, typeL, typeR, arbol);
+                case MENOR ->
+                    this.menor(valueL, valueR, typeL, typeR, arbol);
+                case MENORIGUAL ->
+                    this.menorIgual(valueL, valueR, typeL, typeR, arbol);
+                case MAYORIGUAL ->
+                    this.mayorIgual(valueL, valueR, typeL, typeR, arbol);
+                default ->
+                    arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+            };
         }
-        if (valueR == null) {
-            return new Errores("SEMANTICO", "Un elemento es nulo", this.linea, this.columna);
+        return null;
+    }
+
+    public Object igualA(Object valueL, Object valueR, Dato typeL, Dato typeR, Arbol arbol) {
+        switch (typeL) {
+            case ENTERO -> {
+                switch (typeR) {
+                    case ENTERO -> {
+                        return (int) valueL == (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (int) valueL == (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (int) valueL == (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (int) valueL == 1;
+                        } else {
+                            return (int) valueL == 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+
+            case DECIMAL -> {
+                switch (typeR) {
+                    case ENTERO -> {
+                        return (double) valueL == (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (double) valueL == (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (double) valueL == (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (double) valueL == 1;
+                        } else {
+                            return (double) valueL == 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            case BOOLEANO -> {
+                switch (typeR) {
+                    case ENTERO -> {
+                        if ((boolean) valueL) {
+                            return (int) valueR == 1;
+                        } else {
+                            return (int) valueR == 0;
+                        }
+                    }
+
+                    case BOOLEANO -> {
+                        return (boolean) valueL == (boolean) valueR;
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+            }
         }
+        return null;
+    }
 
-        if (valueL instanceof Errores) {
-            return valueL;
+    public Object diferenteA(Object valueL, Object valueR, Dato typeL, Dato typeR, Arbol arbol) {
+        switch (typeL) {
+            case ENTERO -> {
+                switch (typeR) {
+                    case ENTERO -> {
+                        return (int) valueL != (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (int) valueL != (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (int) valueL != (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (int) valueL != 1;
+                        } else {
+                            return (int) valueL != 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+
+            case DECIMAL -> {
+                switch (typeR) {
+                    case ENTERO -> {
+                        return (double) valueL != (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (double) valueL != (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (double) valueL != (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (double) valueL != 1;
+                        } else {
+                            return (double) valueL != 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            case BOOLEANO -> {
+                switch (typeR) {
+                    case ENTERO -> {
+                        if ((boolean) valueL) {
+                            return (int) valueR != 1;
+                        } else {
+                            return (int) valueR != 0;
+                        }
+                    }
+
+                    case BOOLEANO -> {
+                        return (boolean) valueL != (boolean) valueR;
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+            }
         }
-        if (valueR instanceof Errores) {
-            return valueR;
+        return null;
+    }
+
+    public Object menor(Object valueL, Object valueR, Dato typeL, Dato typeR, Arbol arbol) {
+        switch (typeL) {
+            case ENTERO -> {
+                switch (typeR) {
+                    case ENTERO -> {
+                        return (int) valueL < (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (int) valueL < (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (int) valueL < (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (int) valueL < 1;
+                        } else {
+                            return (int) valueL < 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+
+            case DECIMAL -> {
+                switch (typeR) {
+                    case ENTERO -> {
+                        return (double) valueL < (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (double) valueL < (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (double) valueL < (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (double) valueL < 1;
+                        } else {
+                            return (double) valueL < 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            case BOOLEANO -> {
+                switch (typeR) {
+                    case ENTERO -> {
+                        if ((boolean) valueL) {
+                            return (int) valueR < 1;
+                        } else {
+                            return (int) valueR < 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+            }
         }
-
-        return switch (operacion) {
-            case IGUALA ->
-                this.igualA(valueL, valueR, typeL, typeR);
-            case DIFERENTEA ->
-                this.diferenteA(valueL, valueR, typeL, typeR);
-            case MAYOR ->
-                this.mayor(valueL, valueR, typeL, typeR);
-            case MENOR ->
-                this.menor(valueL, valueR, typeL, typeR);
-            case MENORIGUAL ->
-                this.menorIgual(valueL, valueR, typeL, typeR);
-            case MAYORIGUAL ->
-                this.mayorIgual(valueL, valueR, typeL, typeR);
-            default ->
-                new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-        };
+        return null;
     }
 
-    public Object igualA(Object valueL, Object valueR, Dato typeL, Dato typeR) {
-        return switch (typeL) {
-            case ENTERO ->
+    public Object mayor(Object valueL, Object valueR, Dato typeL, Dato typeR, Arbol arbol) {
+        switch (typeL) {
+            case ENTERO -> {
                 switch (typeR) {
-                    case ENTERO ->
-                        (int) valueL == (int) valueR;
-                    case DECIMAL ->
-                        (int) valueL == (double) valueR;
-                    case CARACTER ->
-                        (int) valueL == (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case DECIMAL ->
+                    case ENTERO -> {
+                        return (int) valueL > (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (int) valueL > (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (int) valueL > (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (int) valueL > 1;
+                        } else {
+                            return (int) valueL > 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+
+            case DECIMAL -> {
                 switch (typeR) {
-                    case ENTERO ->
-                        (double) valueL == (int) valueR;
-                    case DECIMAL ->
-                        (double) valueL == (double) valueR;
-                    case CARACTER ->
-                        (int) valueL == (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case BOOLEANO ->
+                    case ENTERO -> {
+                        return (double) valueL > (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (double) valueL > (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (double) valueL > (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (double) valueL > 1;
+                        } else {
+                            return (double) valueL > 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            case BOOLEANO -> {
                 switch (typeR) {
-                    case BOOLEANO ->
-                        (boolean) valueL == (boolean) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case CARACTER ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (char) valueL == (int) valueR;
-                    case DECIMAL ->
-                        (char) valueL == (double) valueR;
-                    case CARACTER ->
-                        (char) valueL == (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case CADENA ->
-                switch (typeR) {
-                    case CADENA ->
-                        valueL.toString().equalsIgnoreCase(valueR.toString());
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            default ->
-                new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-        };
+                    case ENTERO -> {
+                        if ((boolean) valueL) {
+                            return (int) valueR > 1;
+                        } else {
+                            return (int) valueR > 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+            }
+        }
+        return null;
     }
 
-    public Object diferenteA(Object valueL, Object valueR, Dato typeL, Dato typeR) {
-        return switch (typeL) {
-            case ENTERO ->
+    public Object menorIgual(Object valueL, Object valueR, Dato typeL, Dato typeR, Arbol arbol) {
+        switch (typeL) {
+            case ENTERO -> {
                 switch (typeR) {
-                    case ENTERO ->
-                        (int) valueL != (int) valueR;
-                    case DECIMAL ->
-                        (int) valueL != (double) valueR;
-                    case CARACTER ->
-                        (int) valueL != (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case DECIMAL ->
+                    case ENTERO -> {
+                        return (int) valueL <= (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (int) valueL <= (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (int) valueL <= (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (int) valueL <= 1;
+                        } else {
+                            return (int) valueL <= 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+
+            case DECIMAL -> {
                 switch (typeR) {
-                    case ENTERO ->
-                        (double) valueL != (int) valueR;
-                    case DECIMAL ->
-                        (double) valueL != (double) valueR;
-                    case CARACTER ->
-                        (int) valueL != (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case BOOLEANO ->
+                    case ENTERO -> {
+                        return (double) valueL <= (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (double) valueL <= (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (double) valueL <= (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (double) valueL <= 1;
+                        } else {
+                            return (double) valueL <= 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            case BOOLEANO -> {
                 switch (typeR) {
-                    case BOOLEANO ->
-                        (boolean) valueL != (boolean) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case CARACTER ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (char) valueL != (int) valueR;
-                    case DECIMAL ->
-                        (char) valueL != (double) valueR;
-                    case CARACTER ->
-                        (char) valueL != (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case CADENA ->
-                switch (typeR) {
-                    case CADENA ->
-                        !valueL.toString().equalsIgnoreCase(valueR.toString());
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            default ->
-                new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-        };
+                    case ENTERO -> {
+                        if ((boolean) valueL) {
+                            return (int) valueR <= 1;
+                        } else {
+                            return (int) valueR <= 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+            }
+        }
+        return null;
     }
 
-    public Object menor(Object valueL, Object valueR, Dato typeL, Dato typeR) {
-        return switch (typeL) {
-            case ENTERO ->
+    public Object mayorIgual(Object valueL, Object valueR, Dato typeL, Dato typeR, Arbol arbol) {
+        switch (typeL) {
+            case ENTERO -> {
                 switch (typeR) {
-                    case ENTERO ->
-                        (int) valueL < (int) valueR;
-                    case DECIMAL ->
-                        (int) valueL < (double) valueR;
-                    case CARACTER ->
-                        (int) valueL < (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case DECIMAL ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (double) valueL < (int) valueR;
-                    case DECIMAL ->
-                        (double) valueL < (double) valueR;
-                    case CARACTER ->
-                        (int) valueL < (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case CARACTER ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (char) valueL < (int) valueR;
-                    case DECIMAL ->
-                        (char) valueL < (double) valueR;
-                    case CARACTER ->
-                        (char) valueL < (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            default ->
-                new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-        };
-    }
+                    case ENTERO -> {
+                        return (int) valueL > (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (int) valueL > (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (int) valueL > (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (int) valueL > 1;
+                        } else {
+                            return (int) valueL > 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
 
-    public Object mayor(Object valueL, Object valueR, Dato typeL, Dato typeR) {
-        return switch (typeL) {
-            case ENTERO ->
+            case DECIMAL -> {
                 switch (typeR) {
-                    case ENTERO ->
-                        (int) valueL > (int) valueR;
-                    case DECIMAL ->
-                        (int) valueL > (double) valueR;
-                    case CARACTER ->
-                        (int) valueL > (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case DECIMAL ->
+                    case ENTERO -> {
+                        return (double) valueL >= (int) valueR;
+                    }
+                    case DECIMAL -> {
+                        return (double) valueL >= (double) valueR;
+                    }
+                    case CARACTER -> {
+                        return (double) valueL >= (char) valueR;
+                    }
+                    case BOOLEANO -> {
+                        if ((boolean) valueR) {
+                            return (double) valueL >= 1;
+                        } else {
+                            return (double) valueL >= 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            case BOOLEANO -> {
                 switch (typeR) {
-                    case ENTERO ->
-                        (double) valueL > (int) valueR;
-                    case DECIMAL ->
-                        (double) valueL > (double) valueR;
-                    case CARACTER ->
-                        (int) valueL > (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case CARACTER ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (char) valueL > (int) valueR;
-                    case DECIMAL ->
-                        (char) valueL > (double) valueR;
-                    case CARACTER ->
-                        (char) valueL > (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            default ->
-                new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-        };
-    }
-
-    public Object menorIgual(Object valueL, Object valueR, Dato typeL, Dato typeR) {
-        return switch (typeL) {
-            case ENTERO ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (int) valueL <= (int) valueR;
-                    case DECIMAL ->
-                        (int) valueL <= (double) valueR;
-                    case CARACTER ->
-                        (int) valueL <= (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case DECIMAL ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (double) valueL <= (int) valueR;
-                    case DECIMAL ->
-                        (double) valueL <= (double) valueR;
-                    case CARACTER ->
-                        (int) valueL <= (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case CARACTER ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (char) valueL <= (int) valueR;
-                    case DECIMAL ->
-                        (char) valueL <= (double) valueR;
-                    case CARACTER ->
-                        (char) valueL <= (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            default ->
-                new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-        };
-    }
-
-    public Object mayorIgual(Object valueL, Object valueR, Dato typeL, Dato typeR) {
-        return switch (typeL) {
-            case ENTERO ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (int) valueL >= (int) valueR;
-                    case DECIMAL ->
-                        (int) valueL >= (double) valueR;
-                    case CARACTER ->
-                        (int) valueL >= (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case DECIMAL ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (double) valueL >= (int) valueR;
-                    case DECIMAL ->
-                        (double) valueL >= (double) valueR;
-                    case CARACTER ->
-                        (int) valueL >= (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            case CARACTER ->
-                switch (typeR) {
-                    case ENTERO ->
-                        (char) valueL >= (int) valueR;
-                    case DECIMAL ->
-                        (char) valueL >= (double) valueR;
-                    case CARACTER ->
-                        (char) valueL >= (char) valueR;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-                };
-            default ->
-                new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.columna);
-        };
+                    case ENTERO -> {
+                        if ((boolean) valueL) {
+                            return (int) valueR >= 1;
+                        } else {
+                            return (int) valueR >= 0;
+                        }
+                    }
+                    default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+                    }
+                }
+            }
+            default -> {
+                        arbol.errores.add(new Errores("Semantico", "Relacional Invalido", this.linea, this.columna));
+            }
+        }
+        return null;
     }
 
     public String generarast(Arbol arbol, String anterior) {

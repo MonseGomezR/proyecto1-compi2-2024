@@ -1,6 +1,6 @@
 package com.compi2.simpascal.instrucciones.simbolos;
 
-import com.compi2.simpascal.instrucciones.tipos.Tipo;
+import com.compi2.simpascal.instrucciones.tipos.*;
 
 /**
  *
@@ -10,12 +10,15 @@ public class Simbolo {
     private Tipo tipo;
     private String id;
     private Object valor;
+    private String categoria;
+    private String ambito;
     private boolean mutable;
 
     public Simbolo(Tipo tipo, String id) {
         this.tipo = tipo;
         this.id = id;
     }
+    
 
     public Simbolo(Tipo tipo, String id, Object valor, boolean mutable) {
         this.tipo = tipo;
@@ -51,5 +54,24 @@ public class Simbolo {
     public boolean getMutable() {
         return mutable;
     }
+
+    public String getCategoria() {
+        return categoria;
+    }
+    
+    
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public String getAmbito() {
+        return ambito;
+    }
+
+    public void setAmbito(String ambito) {
+        this.ambito = ambito;
+    }
+    
     
 }

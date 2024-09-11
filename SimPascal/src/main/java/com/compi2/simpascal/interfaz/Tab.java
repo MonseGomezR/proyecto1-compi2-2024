@@ -1,5 +1,6 @@
 package com.compi2.simpascal.interfaz;
 
+import java.io.File;
 import javax.swing.JButton;
 
 /**
@@ -11,6 +12,7 @@ public class Tab {
     private String contenidoTextArea;
     private String nombreArchivo;
     private JButton botonAsignado;
+    private File direccion;
 
     public Tab() {
         this("", "", null);
@@ -44,6 +46,14 @@ public class Tab {
 
     public void setBotonAsignado(JButton botonAsignado) {
         this.botonAsignado = botonAsignado;
+    }
+    
+    public File getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(File direccion) {
+        this.direccion = direccion;
     }
     
     

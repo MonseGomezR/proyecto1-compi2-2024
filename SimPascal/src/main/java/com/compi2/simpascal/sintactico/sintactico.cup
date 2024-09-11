@@ -29,13 +29,20 @@ parser code {:
     }
 
     public void syntax_error(Symbol s){
-        listaErrores.add(new Errores("SINTACTICO RECUPERABLE", "Componente inesperado: " + s.value.toString(), 
-            s.left, s.right));
+        if(s.value != null) {
+            listaErrores.add(new Errores("Sintactico Recuperable", "Componente inesperado: " + s.value.toString(), 
+                s.left, s.right));
+        }
     }
 
     public void unrecovered_syntax_error(Symbol s) { 
+        if(s.value != null) {
         listaErrores.add(new Errores("SINTACTICO NO RECUPERABLE", s.value.toString(), 
             s.left-1, s.right));
+        }else {
+        listaErrores.add(new Errores("SINTACTICO NO RECUPERABLE", "", 
+            s.left-1, s.right));
+        }
     }
 :}
 
@@ -67,19 +74,18 @@ terminal OR, AND, NOT;
 // ---No Terminales
 
 nonterminal LinkedList<Instruccion>     inicio, i_instrucciones, instrucciones;
-nonterminal Instruccion                 instruccion, instruccionIf;
+nonterminal Instruccion                 instruccion, instruccionU;
 
 nonterminal Tipo                        tipos;
 nonterminal Instruccion                 expresion, e_arit, e_logic, e_relac, e_nativ, casteo;
-nonterminal LinkedList<Instruccion>     i_declaracion, i_funciones, i_procedimientos, i_fun_proc, ins_statements, i_elseIfs;
-nonterminal Instruccion                 i_write, i_asignar, funcion, procedimiento, i_if, i_elseIf, i_else, i_for;
-nonterminal Instruccion                 dec_const, dec_var, llam_fun, llam_proc;
+nonterminal LinkedList<Instruccion>     i_declaracion, i_funciones, i_procedimientos, i_fun_proc, ins_statements, i_elseIfsB, i_elseIfs;
+nonterminal Instruccion                 i_write, i_read, i_asignar, funcion, procedimiento, i_if, i_elseIf, i_else, i_for, i_while;
+nonterminal Instruccion                 dec_type, dec_const, dec_var, llam_fun, llam_proc, i_elseB, dec_type_opt, dec_const_opt, dec_var_opt;
 nonterminal Simbolo                     constante;
-nonterminal LinkedList<Simbolo>         constantes_list;
+nonterminal LinkedList<Simbolo>         constantes_list, variables_list, var_aux, types_list, types_aux;
 nonterminal LinkedList<HashMap>         parametros;
 nonterminal LinkedList<String>          variable;
 nonterminal int[]                       rango;
-nonterminal LinkedList<Simbolo>         variables_list, var_aux;
 nonterminal LinkedList<Instruccion>     write_aux, llam_par;
 
 
@@ -90,6 +96,7 @@ precedence right    NOT;
 precedence left     IGUALA, DIFERENTEA, MAYOR, MENOR, MAYORIGUAL, MENORIGUAL;
 precedence left     MAS, MENOS;
 precedence left     MULTI, DIV, MOD;
+precedence left     IF, ELSEIF, ELSE;
 precedence right    UMENOS;
 
 start with inicio;
@@ -105,147 +112,45 @@ inicio  ::= PROGRAM ID:c PUNTOCOMA
                                                 RESULT.addAll(b);
                                             :}
 ;
-
-i_fun_proc ::= i_funciones:a i_procedimientos:b {: 
-                                                    RESULT = new LinkedList<>(); 
-                                                    RESULT.addAll(a); 
-                                                    RESULT.addAll(b); 
-                                                :}
-               | i_funciones:a                    {: 
-                                                    RESULT = new LinkedList<>(); 
-                                                    RESULT.addAll(a); 
-                                                :}
-               | i_procedimientos:b             {: 
-                                                    RESULT = new LinkedList<>(); 
-                                                    RESULT.addAll(b); 
-                                                :}
-               | /* vacío */                    {: 
-                                                    RESULT = new LinkedList<>(); 
-                                                :}
+i_declaracion ::= dec_type_opt:a dec_const_opt:b dec_var_opt:c {: 
+                        RESULT = new LinkedList<>(); 
+                        if (a != null) RESULT.add(a);
+                        if (b != null) RESULT.add(b);
+                        if (c != null) RESULT.add(c);
+                    :}
 ;
 
-i_instrucciones ::= BEGIN instrucciones:a END   {: RESULT = a; :}
-                |   error:e                     {: 
-                                                    listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
-                                                        "Error en i_instrucciones", 
-                                                        eleft, eright));
-                                                    RESULT = new LinkedList<>(); 
-                                                :}
+dec_type_opt ::= dec_type:a  {: RESULT = a; :}
+              |            {: RESULT = null; :}
 ;
 
-instrucciones ::= instrucciones:a instruccion:b    {:  
-                                                                RESULT = a; 
-                                                                if(b != null) {
-                                                                    RESULT.add(b);
+dec_const_opt ::= dec_const:a {: RESULT =a; :}
+               |            {: RESULT = null; :}
+;
+
+dec_var_opt ::= dec_var:a {: RESULT = a; :}
+             |          {: RESULT = null; :}
+;
+
+dec_type ::= TYPE types_list:a                  {: RESULT = new DecTypes(a, aleft, aright); :}
+;
+types_list ::=  types_list:a types_aux:b              {:  RESULT = a; RESULT.addAll(b);   :}
+            |   types_aux:a                           {:  RESULT = new LinkedList<>(); RESULT.addAll(a);   :}
+;
+types_aux ::= variable:a IGUALA tipos:b PUNTOCOMA          {:  
+                                                                RESULT = new LinkedList<>();
+                                                                for(String id : a) {
+                                                                    Simbolo s = new Simbolo(b, id, null, true);
+                                                                    RESULT.add(s);
                                                                 }
                                                             :}
-                | instruccion:a                    {:  
-                                                                RESULT = new LinkedList<>(); 
-                                                                if(a != null) {
-                                                                    RESULT.add(a);
-                                                                }
-                                                            :}
+        |   variable:a IGUALA ARRAY L_LLAVE rango:c R_LLAVE OF tipos:b PUNTOCOMA     {:  RESULT = new LinkedList<>();
+                                                                                            for(String id : a) {
+                                                                                                Simbolo s = new Simbolo(b, id, c, true);
+                                                                                                RESULT.add(s);
+                                                                                            }
+                                                                                        :}
 ;
-
-instruccion ::= i_write:a PUNTOCOMA         {:  RESULT = a; :}
-            |   i_asignar:a PUNTOCOMA       {:  RESULT = a; :}
-            |   i_if:a PUNTOCOMA            {:  RESULT = a; :}
-            |   i_for:a PUNTOCOMA
-            |   llam_proc:a PUNTOCOMA       {:  RESULT = a; :}
-            |   error:e PUNTOCOMA           {: 
-                                                listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
-                                                "Instrucción inválida, falta ';' o error antes de ';'.", 
-                                                eleft, eright));
-                                                RESULT = null;
-                                            :}
-            |   error:e                     {: 
-                                                listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
-                                                    "Falta ';' después de la instrucción.", 
-                                                    eleft, eright + 1));
-                                                RESULT = null;
-                                            :}
-;
-
-tipos   ::= INTEGER     {:  RESULT = new Tipo(Dato.ENTERO);     :}
-        |   REAL        {:  RESULT = new Tipo(Dato.DECIMAL);    :}
-        |   CHAR        {:  RESULT = new Tipo(Dato.CARACTER);   :}
-        |   STRING      {:  RESULT = new Tipo(Dato.CADENA);     :}
-        |   BOOLEAN     {:  RESULT = new Tipo(Dato.BOOLEANO);   :}
-;
-
-i_write   ::= WRITELN L_PAREN write_aux:a R_PAREN       {:  RESULT = new WriteLn(a, aleft, aright); :}
-;
-
-write_aux   ::= write_aux:a COMA expresion:b        {:  
-                                                        RESULT = a; 
-                                                        RESULT.add(b);
-                                                    :}
-            |   expresion:a                         {:  
-                                                        RESULT = new LinkedList<>(); 
-                                                        RESULT.add(a);
-                                                    :}        
-            | error:e                               {: 
-                                                        listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
-                                                            "Expresion inválida o falta ','.", 
-                                                            eleft, eright));
-                                                        RESULT = null;
-                                                    :}
-;
-
-i_asignar ::=   ID:a ASIGNACION expresion:b               {:  RESULT = new AsignacionVar(a, b, aleft, aright);    :}
-;
-
-i_if ::=    IF L_PAREN expresion:a R_PAREN THEN ins_statements:st                            {: RESULT = new If(a, st, null, null, aleft, aright); System.out.println("If");:}
-        |   IF L_PAREN expresion:a R_PAREN THEN ins_statements:st i_elseIfs:efs              {: RESULT = new If(a, st, efs, null, aleft, aright); System.out.println("If elseifs");:}
-        |   IF L_PAREN expresion:a R_PAREN THEN ins_statements:st i_else:e                   {: RESULT = new If(a, st, null, e, aleft, aright); System.out.println("If else ");:}
-        |   IF L_PAREN expresion:a R_PAREN THEN ins_statements:st i_elseIfs:efs i_else:e     {: RESULT = new If(a, st, efs, e, aleft, aright); System.out.println("If completo");:}
-;
-
-i_elseIfs ::=   i_elseIfs:a i_elseIf:b                  {: RESULT = a; RESULT.add(b); :}
-            |   i_elseIf:a                              {: RESULT = new LinkedList<>(); RESULT.add(a); :}
-;
-
-i_elseIf ::=    ELSEIF L_PAREN expresion:a R_PAREN THEN ins_statements:st   {: RESULT = new ElseIf(a, st, aleft, aright); :}
-;
-
-i_else ::=  ELSE ins_statements:st   {: RESULT = new Else(st, stleft, stright); :}
-;
-
-ins_statements ::=  instruccionIf:i                                       {: RESULT = new LinkedList<>(); RESULT.add(i); :}
-                |   BEGIN instrucciones:a instruccion:b END   {: RESULT = a; RESULT.add(b); :}
-;
-
-instruccionIf ::= i_write:a             {:  RESULT = a; :}
-            |   i_asignar:a             {:  RESULT = a; :}
-            |   error:e                 {: 
-                                            listaErrores.add(new Errores("SINTACTICO RECUPERABLE", 
-                                                "Instrucción no válida.", 
-                                                eleft, eright));
-                                            RESULT = null;
-                                        :}
-;
-
-i_for ::= FOR:f ID:id ASIGNACION expresion:asig TO expresion:b DO ins_statements:ins     {:   RESULT = new For(id, asig, b, ins, fleft, fright); :}
-;
-
-i_declaracion ::= dec_const:a dec_var:b         {: 
-                                                    RESULT = new LinkedList<>(); 
-                                                    RESULT.add(a); 
-                                                    RESULT.add(b); 
-                                                :}
-               | dec_const:a                    {: 
-                                                    RESULT = new LinkedList<>(); 
-                                                    RESULT.add(a); 
-                                                :}
-               | dec_var:b                      {: 
-                                                    RESULT = new LinkedList<>(); 
-                                                    RESULT.add(b); 
-                                                :}
-               |                                {: 
-                                                    RESULT = new LinkedList<>(); 
-                                                :}
-;
-
 
 dec_const ::= CONST constantes_list:a          {:
                                                         RESULT = new DecConst(a, aleft, aright);
@@ -296,6 +201,152 @@ variable ::=    variable:a COMA ID:b            {:
                                                     RESULT.add(a);
                                                 :}
 ;
+
+i_fun_proc ::= i_funciones:a i_procedimientos:b {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.addAll(a); 
+                                                    RESULT.addAll(b); 
+                                                :}
+               | i_funciones:a                    {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.addAll(a); 
+                                                :}
+               | i_procedimientos:b             {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                    RESULT.addAll(b); 
+                                                :}
+               | /* vacío */                    {: 
+                                                    RESULT = new LinkedList<>(); 
+                                                :}
+;
+
+i_instrucciones ::= BEGIN instrucciones:a END   {: RESULT = a; :}
+                |   error:e                     {: 
+                                                    listaErrores.add(new Errores("Sintactico Recuperable", 
+                                                        "Error en i_instrucciones", 
+                                                        eleft, eright));
+                                                    RESULT = new LinkedList<>(); 
+                                                :}
+;
+
+instrucciones ::= instrucciones:a instruccion:b    {:  
+                                                                RESULT = a; 
+                                                                if(b != null) {
+                                                                    RESULT.add(b);
+                                                                }
+                                                            :}
+                | instruccion:a                    {:  
+                                                                RESULT = new LinkedList<>(); 
+                                                                if(a != null) {
+                                                                    RESULT.add(a);
+                                                                }
+                                                            :}
+;
+
+instruccion ::= i_write:a PUNTOCOMA         {:  RESULT = a; :}
+            |   i_read:a PUNTOCOMA          {:  RESULT = a; :}
+            |   i_asignar:a PUNTOCOMA       {:  RESULT = a; :}
+            |   i_if:a PUNTOCOMA            {:  RESULT = a; :}
+            |   i_for:a PUNTOCOMA           {:  RESULT = a; :}
+            |   i_while:a PUNTOCOMA         {:  RESULT = a; :}
+            |   llam_proc:a PUNTOCOMA       {:  RESULT = a; :}
+            |   error:e PUNTOCOMA           {: 
+                                                listaErrores.add(new Errores("Sintactico Recuperable", 
+                                                "Instrucción inválida, falta ';' o error antes de ';'.", 
+                                                eleft, eright));
+                                                RESULT = null;
+                                            :}
+            |   error:e                     {: 
+                                                listaErrores.add(new Errores("Sintactico Recuperable", 
+                                                    "Falta ';' después de la instrucción.", 
+                                                    eleft, eright + 1));
+                                                RESULT = null;
+                                            :}
+;
+
+tipos   ::= INTEGER     {:  RESULT = new Tipo(Dato.ENTERO);     :}
+        |   REAL        {:  RESULT = new Tipo(Dato.DECIMAL);    :}
+        |   CHAR        {:  RESULT = new Tipo(Dato.CARACTER);   :}
+        |   STRING      {:  RESULT = new Tipo(Dato.CADENA);     :}
+        |   BOOLEAN     {:  RESULT = new Tipo(Dato.BOOLEANO);   :}
+        |   ID:a        {:  RESULT = new Type(a, null);         :}
+;
+
+i_write   ::= WRITELN L_PAREN write_aux:a R_PAREN       {:  RESULT = new WriteLn(a, aleft, aright); :}
+;
+
+i_read   ::= READLN L_PAREN variable:a R_PAREN       {:  RESULT = new ReadLn(a, aleft, aright); :}
+;
+
+write_aux   ::= write_aux:a COMA expresion:b        {:  
+                                                        RESULT = a; 
+                                                        RESULT.add(b);
+                                                    :}
+            |   expresion:a                         {:  
+                                                        RESULT = new LinkedList<>(); 
+                                                        RESULT.add(a);
+                                                    :}        
+            | error:e                               {: 
+                                                        listaErrores.add(new Errores("Sintactico Recuperable", 
+                                                            "Expresion inválida o falta ','.", 
+                                                            eleft, eright));
+                                                        RESULT = null;
+                                                    :}
+;
+
+i_asignar ::=   ID:a ASIGNACION expresion:b               {:  RESULT = new AsignacionVar(a, b, aleft, aright);    :}
+;
+
+i_if ::=    IF:iff L_PAREN expresion:a R_PAREN THEN ins_statements:st
+            i_elseIfsB:efs              
+            i_elseB:e                                                {: RESULT = new If(a, st, efs, e, iffleft, iffright); :}
+;
+
+i_elseIfsB ::=   i_elseIfs:a            {: RESULT = a; :}
+              |                         {: RESULT = null; :}
+;
+
+i_elseIfs ::=   i_elseIfs:a i_elseIf:b                  {: RESULT = a; RESULT.add(b); :}
+            |   i_elseIf:a                              {: RESULT = new LinkedList<>(); RESULT.add(a); :}
+;
+
+i_elseIf ::=    ELSEIF L_PAREN expresion:a R_PAREN THEN ins_statements:st   {: RESULT = new ElseIf(a, st, aleft, aright); :}
+;
+
+i_elseB ::= i_else:a    {: RESULT = a; :}
+        |               {: RESULT = null; :}
+;
+
+
+i_else ::=  ELSE ins_statements:st   {: RESULT = new Else(st, stleft, stright); :}
+;
+
+ins_statements ::=  instruccionU:i                                       {: RESULT = new LinkedList<>(); RESULT.add(i); :}
+                |   BEGIN instrucciones:a instruccion:b END   {: RESULT = a; RESULT.add(b); :}
+;
+
+instruccionU ::=   i_write:a           {:  RESULT = a; :}
+                |   i_read:a            {:  RESULT = a; :}
+                |   i_asignar:a         {:  RESULT = a; :}
+                |   i_if:a              {:  RESULT = a; :}
+                |   i_for:a             {:  RESULT = a; :}
+                |   i_while:a           {:  RESULT = a; :}
+                |   llam_proc:a         {:  RESULT = a; :}
+                |   error:e             {: 
+                                            listaErrores.add(new Errores("Sintactico Recuperable", 
+                                                "Instrucción no válida.", 
+                                                eleft, eright));
+                                            RESULT = null;
+                                        :}
+;
+
+i_for ::= FOR:f ID:id ASIGNACION expresion:asig TO expresion:b DO ins_statements:ins     {:   RESULT = new For(id, asig, b, ins, fleft, fright); :}
+;
+
+i_while ::= WHILE:w L_PAREN expresion:exp R_PAREN DO ins_statements:ins         {:  RESULT = new While(exp, ins, wleft, wright); :}
+;
+
+
 
 i_funciones ::= i_funciones:a funcion:b         {:
                                                     RESULT = a;
@@ -393,5 +444,3 @@ e_nativ ::= ENTERO:a        {:   RESULT = new Nativo(Integer.parseInt(a), new Ti
          |  CADENA:a        {:   RESULT = new Nativo(a, new Tipo(Dato.CADENA), aleft, aright);                          :}
          |  CARACTER:a      {:   RESULT = new Nativo(a, new Tipo(Dato.CARACTER), aleft, aright);                        :}
 ;
-
-

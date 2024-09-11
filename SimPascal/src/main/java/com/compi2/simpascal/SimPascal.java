@@ -1,8 +1,8 @@
 package com.compi2.simpascal;
 
 import com.compi2.simpascal.interfaz.MFrame;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 
 /**
  *
@@ -11,11 +11,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class SimPascal {
 
     public static void main(String args[]) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            // handle exception
-        }
+        FlatLaf.registerCustomDefaultsSource("raven.table");
+        FlatMacDarkLaf.setup();
         java.awt.EventQueue.invokeLater(() -> {
             new MFrame().setVisible(true);
         });

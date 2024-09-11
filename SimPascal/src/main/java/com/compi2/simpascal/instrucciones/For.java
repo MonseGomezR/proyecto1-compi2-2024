@@ -29,39 +29,27 @@ public class For extends Instruccion {
         hayBreak = false;
 
         var varFor = tabla.getVariable(variable);
-        var asigFor = this.asignacion.interpretar(arbol, tabla);
-        var topeFor = this.tope.interpretar(arbol, tabla);
 
-        if (varFor.getTipo().getDato() != Dato.ENTERO || tope.tipo.getDato() != Dato.ENTERO || (int) varFor.getValor() > (int) topeFor) {
-            return new Errores("a", "a", linea, columna);
-        }
+        if (varFor == null) {
+            arbol.errores.add(new Errores("Semantico", "La variable " + variable + " no existe.", linea, columna));
+        } else {
+            var asigFor = this.asignacion.interpretar(arbol, tabla);
+            var topeFor = this.tope.interpretar(arbol, tabla);
 
-        int varInt = (int) asigFor;
-        int topeInt = (int) topeFor;
-        varFor.setValor(varInt);
-
-        while (varInt != topeInt) {
-            for (var instruccion : this.instrucciones) {
-                var resultado = instruccion.interpretar(arbol, tabla);
-                if (resultado instanceof Errores) {
-                    return resultado;
+            if (asigFor == null || topeFor == null) {
+                arbol.errores.add(new Errores("Semantico", "El rango de For es invalido.", linea, columna));
+            } else {
+                if (varFor.getTipo().getDato() != Dato.ENTERO || tope.tipo.getDato() != Dato.ENTERO || (int) asigFor > (int) topeFor) {
+                    arbol.errores.add(new Errores("a", "a", linea, columna));
                 }
-                /*if (resultado instanceof Break || resultado instanceof Continue) {
-                    if (resultado instanceof Break) {
-                        hayBreak = true;
-                        break;
-                    } else if (resultado instanceof Continue) {
-                        break;
-                    }
-                }*/
-            }
-            if (hayBreak) {
-                break;
+                
+                for (var instruccion : this.instrucciones) {
+                    instruccion.interpretar(arbol, tabla);
+                }
             }
 
-            varInt++;
-            varFor.setValor(varInt);
         }
+
         return null;
     }
 

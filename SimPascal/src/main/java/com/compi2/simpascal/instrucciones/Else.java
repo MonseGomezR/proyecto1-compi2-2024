@@ -11,7 +11,7 @@ import java.util.LinkedList;
  */
 public class Else extends Instruccion {
 
-    private LinkedList<Instruccion> instrucciones;
+    private final LinkedList<Instruccion> instrucciones;
 
     public Else(LinkedList<Instruccion> instrucciones, int linea, int col) {
         super(new Tipo(Dato.VOID), linea, col);
@@ -22,7 +22,7 @@ public class Else extends Instruccion {
     public Object interpretar(Arbol arbol, Tabla tabla) {
         var newTabla = new Tabla(tabla);
         for (var i : this.instrucciones) {
-            var resultado = i.interpretar(arbol, newTabla);
+            i.interpretar(arbol, newTabla);
             /*if (resultado instanceof Break) {
                 return resultado;
             }*//*

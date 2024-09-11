@@ -1,0 +1,63 @@
+digraph DefinicionDeTipos{
+ rankdir=TB
+nodesep=0.1
+ranksep=0.4
+node [style=filled, fontsize=10, width=1, height=.3, color=aquamarine]types_1[label="types"]
+types_1_dec1[label="type"]
+types_1_dec1_id[label="ID: type1"]
+types_1_dec1_type[label="TYPE: ENTERO"]
+types_1_dec2[label="type"]
+types_1_dec2_id[label="ID: type2"]
+types_1_dec2_type[label="TYPE: ENTERO"]
+types_1_dec3[label="type"]
+types_1_dec3_id[label="ID: type3"]
+types_1_dec3_type[label="TYPE: ENTERO"]
+types_1_dec4[label="type"]
+types_1_dec4_id[label="ID: type4"]
+types_1_dec4_type[label="TYPE: type1"]
+start -> declaraciones
+declaraciones ->types_1
+types_1 -> types_1_dec1
+types_1_dec1 -> types_1_dec1_id
+types_1_dec1 -> types_1_dec1_type
+types_1 -> types_1_dec2
+types_1_dec2 -> types_1_dec2_id
+types_1_dec2 -> types_1_dec2_type
+types_1 -> types_1_dec3
+types_1_dec3 -> types_1_dec3_id
+types_1_dec3 -> types_1_dec3_type
+types_1 -> types_1_dec4
+types_1_dec4 -> types_1_dec4_id
+types_1_dec4 -> types_1_dec4_type
+variables_2[label="variables"]
+variables_2_dec1[label="variable"]
+variables_2_dec1_id[label="ID: Persona1"]
+variables_2_dec1_type[label="TIPO: type2"]
+variables_2_dec2[label="variable"]
+variables_2_dec2_id[label="ID: persona2"]
+variables_2_dec2_type[label="TIPO: type4"]
+declaraciones -> declaracionesN
+declaracionesN ->variables_2
+variables_2 -> variables_2_dec1
+variables_2_dec1 -> variables_2_dec1_id
+variables_2_dec1 -> variables_2_dec1_type
+variables_2 -> variables_2_dec2
+variables_2_dec2 -> variables_2_dec2_id
+variables_2_dec2 -> variables_2_dec2_type
+writeln3[label=writeln]
+start -> statements
+statements->writeln3
+nativo4[label ="hola mundo"]
+writeln3 -> nativo4
+asignacion5[label="asignacion"]
+asignacion5_id[label=ID]
+asignacion5_value[label="VALOR"]
+asignacion5_name[label="personal1"]
+statements -> asignacion5
+asignacion5 -> asignacion5_id
+asignacion5 -> asignacion5_value
+asignacion5_id -> asignacion5_name
+nativo6[label ="12"]
+asignacion5_value -> nativo6
+}
+

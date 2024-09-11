@@ -25,16 +25,17 @@ public class Acceso extends Instruccion {
         if (index == null) {
             var valor = tabla.getVariable(this.id);
             if (valor == null) {
-                return new Errores("SEMANTICO", "La variable no existe", this.linea, this.columna);
-            }
-            this.tipo.setTipo(valor.getTipo().getDato());
+                arbol.errores.add(new Errores("Semantico", "Acceso: La variable " + id + " no existe.", this.linea, this.columna));
+            } else {
+                this.tipo.setTipo(valor.getTipo().getDato());
 
-            if (valor.getValor() instanceof char[] valorN) {
-                String temp = new String(valorN);
-                return temp;
-            }
+                if (valor.getValor() instanceof char[] valorN) {
+                    String temp = new String(valorN);
+                    return temp;
+                }
 
-            return valor.getValor();
+                return valor.getValor();
+            }
         }
         return null;
     }
@@ -50,12 +51,11 @@ public class Acceso extends Instruccion {
         String nodeName = "acceso" + arbol.getContador();
         String labels = nodeName + "[label=\"acceso\"]\n"
                 + nodeName + "_" + this.id + "[label =\"id:" + this.id + "\"]\n";
-        
+
         String ast = padre + " -> " + nodeName + "\n"
-                + nodeName + " -> " + nodeName + "_" + this.id  + "\n";
+                + nodeName + " -> " + nodeName + "_" + this.id + "\n";
 
         return labels + ast;
-
     }
 
     @Override

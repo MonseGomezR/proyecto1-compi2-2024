@@ -24,12 +24,8 @@ public class WriteLn extends Instruccion {
         for (Instruccion expresion : expresiones) {
             var resultado = expresion.interpretar(arbol, tabla);
             if (resultado != null) {
-                if (resultado instanceof Errores) {
-                    return resultado;
-                } else {
-
-                    arbol.Print(resultado.toString());
-                    System.out.println(resultado.toString());
+                if (resultado instanceof Errores e) {
+                    arbol.errores.add(e);
                 }
             }
         }

@@ -24,35 +24,33 @@ public class ElseIf extends Instruccion {
     @Override
     public Object interpretar(Arbol arbol, Tabla tabla) {
         var cond = this.condicion.interpretar(arbol, tabla);
-        if (cond instanceof Errores) {
-            return cond;
-        }
+        if (cond != null) {
+            if (this.condicion.tipo.getDato() != Dato.BOOLEANO) {
+                arbol.errores.add(new Errores("SEMANTICO", "Expresion invalida", this.linea, this.columna));
+            } else {
 
-        if (this.condicion.tipo.getDato() != Dato.BOOLEANO) {
-            return new Errores("SEMANTICO", "Expresion invalida", this.linea, this.columna);
-        }
+                if ((boolean) cond) {
+                    var newTabla = new Tabla(tabla);
+                    for (var i : this.instrucciones) {
+                        var resultado = i.interpretar(arbol, newTabla);
 
-        if ((boolean) cond) {
-            var newTabla = new Tabla(tabla);
-            for (var i : this.instrucciones) {
-                var resultado = i.interpretar(arbol, newTabla);
-
-                if (resultado instanceof Errores) {
-                    return resultado;
-                }
-
-                /*if (resultado instanceof Break) {
+                        /*if (resultado instanceof Break) {
                     return resultado;
                 }*/
-                if (resultado != null) {
-                    return resultado;
-                }
+                        if (resultado != null) {
+                            return resultado;
+                        }
 
-                return true;
+                        return true;
+                    }
+                } else {
+                    return null;
+                }
             }
-        } else {
-            return null;
+        }else {
+            arbol.errores.add(new Errores("Semantico", "La condicion dada es nula.", linea, columna));
         }
+
         return null;
     }
 
@@ -77,7 +75,7 @@ public class ElseIf extends Instruccion {
     @Override
     public String generarAA(String padre, Arbol arbol, Tabla tabla) {
         String aa = condicion.generarAA(padre, arbol, tabla);
-        for (var instruccion: instrucciones) {
+        for (var instruccion : instrucciones) {
             aa += instruccion.generarAA(padre, arbol, tabla);
         }
         return aa;

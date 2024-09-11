@@ -1,9 +1,13 @@
 package com.compi2.simpascal.instrucciones.simbolos;
 
+import com.compi2.simpascal.instrucciones.Errores;
 import com.compi2.simpascal.instrucciones.Funcion;
 import com.compi2.simpascal.instrucciones.Instruccion;
 import com.compi2.simpascal.instrucciones.Procedimiento;
+import com.compi2.simpascal.instrucciones.tipos.Tipo;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 /**
  *
@@ -14,9 +18,10 @@ public class Arbol {
     private LinkedList<Instruccion> instrucciones;
     private String consola;
     private Tabla tablaGlobal;
-    public LinkedList<Error> errores;
+    public LinkedList<Errores> errores;
     private LinkedList<Funcion> funciones;
     private LinkedList<Procedimiento> procedimientos;
+    private final Map<String, Tipo> types;
     public int contador;
     public int contadorAA;
 
@@ -27,6 +32,7 @@ public class Arbol {
         this.errores = new LinkedList<>();
         this.funciones = new LinkedList<>();
         this.procedimientos = new LinkedList<>();
+        this.types = new HashMap<>();
         this.contador = 0;
         this.contadorAA = 0;
     }
@@ -55,11 +61,11 @@ public class Arbol {
         this.tablaGlobal = tablaGlobal;
     }
 
-    public LinkedList<Error> getErrores() {
+    public LinkedList<Errores> getErrores() {
         return errores;
     }
 
-    public void setErrores(LinkedList<Error> errores) {
+    public void setErrores(LinkedList<Errores> errores) {
         this.errores = errores;
     }
 
@@ -120,4 +126,14 @@ public class Arbol {
         return this.contadorAA;
 
     }
+
+    public Map<String, Tipo> getTypes() {
+        return types;
+    }
+    
+    public boolean hasType (String id) {
+        return types.containsKey(id);
+    }
+    
+    
 }
